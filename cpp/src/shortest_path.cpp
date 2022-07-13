@@ -351,11 +351,11 @@ std::vector<pathCost> YenKShortestPath(OrientedGraph &G, std::string origin, std
 
 
 
-std::vector<std::vector<pathCost> > parallelKShortestPath(OrientedGraph &G, const std::vector<std::string> &origins, const std::vector<std::string> &destinations, const std::string &cost, std::vector<setstring> accessibleLabels, double minDist, double maxDist, int kPath, int threadNumber) {
+std::vector<std::vector<pathCost> > parallelKShortestPath(OrientedGraph &G, const std::vector<std::string> &origins, const std::vector<std::string> &destinations, const std::string &cost,const std::vector<setstring> accessibleLabels, double minDist, double maxDist, int kPath, int threadNumber) {
     int nbOD = origins.size();
     
     std::vector<std::vector<pathCost> > res(nbOD);
-    std::shared_ptr<OrientedGraph> privateG;
+    OrientedGraph* privateG;
 
     #pragma omp parallel shared(res, accessibleLabels, G) private(privateG)
     {   

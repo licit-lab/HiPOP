@@ -13,15 +13,27 @@
 #include <limits>
 
 
-OrientedGraph::~OrientedGraph() {
-    for (auto iter : mnodes) { 
-        delete iter.second; 
-    }
+// OrientedGraph::~OrientedGraph() {
 
-    for (auto iter : mlinks) { 
-        delete iter.second; 
-    }
-}
+//     for (auto iter : mlinks) {
+//         std::cout<<"Del link "<<iter.second<<std::endl; 
+//         delete iter.second; 
+//     }
+    
+//     for (auto iter : mnodes) {
+//         for(auto &keyVal:iter.second->madj) {
+//             keyVal.second = NULL;
+//         }
+
+//         delete iter.second; 
+
+        
+//     }
+
+
+
+
+// }
 
 
 void OrientedGraph::AddNode(std::string _id, double x, double y, std::string label, mapsets excludeMovements) {
@@ -36,10 +48,13 @@ void OrientedGraph::AddNode(Node* n) {
 
 void OrientedGraph::AddLink(std::string _id, std::string _up, std::string _down, double length, std::unordered_map<std::string, double> _costs, std::string label) {
     Link *new_link = new Link(_id, _up, _down, length, _costs, label);
-    mnodes[_up]->madj[_down] = new_link;
-    mnodes[_down]->mradj[_up] = new_link;
+    // mnodes[_up]->madj[_down] = new_link;
+    mnodes[_up]->madj.emplace(_down, new_link);
+    // mnodes[_down]->mradj[_up] = new_link;
+    mnodes[_down]->mradj.emplace(_up, new_link);
 
-    mlinks[_id] = new_link;
+    // mlinks[_id] = new_link;
+    mlinks.emplace(_id, new_link);
 };
 
 
@@ -67,31 +82,37 @@ void OrientedGraph::ShowLinks() {
 
 
 
-std::shared_ptr<OrientedGraph> copyGraph(const OrientedGraph &G) {
-    std::shared_ptr<OrientedGraph> newGraph = std::make_shared<OrientedGraph>();
+OrientedGraph* copyGraph(const OrientedGraph &G) {
+    OrientedGraph* newGraph = new OrientedGraph();
 
     for(const auto &keyVal: G.mnodes) {
-        Node *n = new Node(*keyVal.second);
+        // Node *n = new Node();
 
-        newGraph->AddNode(n);
+        newGraph->AddNode(keyVal.second->mid,
+                           keyVal.second->mposition[0],
+                           keyVal.second->mposition[1],
+                           keyVal.second->mlabel,
+                           keyVal.second->mexclude_movements);
     }
 
 
     for(const auto &keyVal: G.mlinks) {
-        Link *l = new Link(*keyVal.second);
-        newGraph->AddLink(l);
-
+        // Link *l = new Link(*keyVal.second);
+        newGraph->AddLink(keyVal.second->mid,
+                          keyVal.second->mupstream,
+                          keyVal.second->mdownstream,
+                          keyVal.second->mlength,
+                          keyVal.second->mcosts,
+                          keyVal.second->mlabel);
     }
-
-
 
     return newGraph;
 }
 
 
 
-std::shared_ptr<OrientedGraph> mergeOrientedGraph(std::vector<std::shared_ptr<OrientedGraph> > allGraphs){
-    std::shared_ptr<OrientedGraph> newGraph = std::make_shared<OrientedGraph>();
+OrientedGraph* mergeOrientedGraph(std::vector<const OrientedGraph*> allGraphs){
+    OrientedGraph *newGraph = new OrientedGraph();
 
     for(auto G:allGraphs) {
         for(const auto &keyValNodes:G->mnodes) {

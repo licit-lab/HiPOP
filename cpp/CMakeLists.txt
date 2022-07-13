@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.19)
-project(Hipop VERSION 1.0.0)
+project(HiPOP VERSION 1.0.0)
 
 
 find_package(OpenMP REQUIRED)
 
+
+# ------------- SRC -------------
 
 set(HIPOP_HEADERS
   include/hipop/create.h
@@ -11,8 +13,9 @@ set(HIPOP_HEADERS
   include/hipop/shortest_path.h
 )
 
-
 add_subdirectory(src)
+
+# -------------------------------
 
 
 
@@ -48,10 +51,10 @@ install(EXPORT HipopTarget DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/hipop)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(${CMAKE_BINARY_DIR}/Hipop/HipopConfigVersion.cmake
-  VERSION ${Hipop_VERSION}
+  VERSION ${HiPOP_VERSION}
   COMPATIBILITY ExactVersion)
 
-configure_package_config_file(${Hipop_SOURCE_DIR}/cmake/HipopConfig.cmake.in
+configure_package_config_file(${HiPOP_SOURCE_DIR}/cmake/HipopConfig.cmake.in
 ${CMAKE_BINARY_DIR}/Hipop/HipopConfig.cmake
 INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/hipop)
 
@@ -62,4 +65,4 @@ install(
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/hipop
   COMPONENT Development)
 
-  # --------------------------------
+# --------------------------------

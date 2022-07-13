@@ -5,7 +5,7 @@ High Performance Optimal Path module
 
 Hipop is the C++ graph library used by `mnms`. You must have `CMake` and `make` installed on your computer.
 
-### C++ Only
+### C++ only
 
 Inside your conda environment go to the cpp folder, and install the code using cmake:
 
@@ -13,11 +13,16 @@ Inside your conda environment go to the cpp folder, and install the code using c
 cd cpp
 mkdir build
 cd build
-cmake .. -DCMAKE_PREFIX_PATH=$CONDA_PREFIX \
-         -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX \
+cmake .. -DCMAKE_PREFIX_PATH=<PREFIX>\
+         -DCMAKE_INSTALL_PREFIX=<PREFIX>\
          -DCMAKE_BUILD_TYPE=Release
-make -j install
+cmake --build . --target install --config Release
 ```
+Where `<PREFIX>` is the path to your prefix.
+
+If you used conda to install the dependencies, replace it by `$CONDA_PREFIX`.
+
+If you used venv to install the dependencies, replace it by the path to your venv.
 
 You can then lauch the tests in the `build` directory:
 
@@ -25,13 +30,16 @@ You can then lauch the tests in the `build` directory:
 ctest --output-on-failure
 ```
 
+
 ### Python
 
-To install C++ code and python interface just launch the line:
+To install C++ code use the script `install_cpp.py`:
+
 ```shell
-python setup.py install       
+python python/install_cpp.py   
 ```
-You can install C++ code and python interface with wheel too :
+
+Then install the python lib:
 ```shell
-pip install hipop-*.whl
+python -m pip install python/
 ```

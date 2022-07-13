@@ -150,12 +150,12 @@ public:
             mlinks[keyVal.first] = newLink;
         }
     }
-    ~OrientedGraph();
+    // ~OrientedGraph();
 
 };
 
 
-std::shared_ptr<OrientedGraph> copyGraph(const OrientedGraph &G);
+OrientedGraph* copyGraph(const OrientedGraph &G);
 
 
-std::shared_ptr<OrientedGraph> mergeOrientedGraph(std::vector<std::shared_ptr<OrientedGraph> > allGraphs);
+OrientedGraph* mergeOrientedGraph(std::vector<const OrientedGraph*> allGraphs);

@@ -1,13 +1,14 @@
 from importlib.resources import path
-from hipop import OrientedGraph, k_shortest_path, parallel_k_shortest_path
+from hipop.graph import OrientedGraph
+from hipop.shortest_path import parallel_k_shortest_path
 from pprint import pprint
 
 G = OrientedGraph()
 
-G.add_node("0", 0, 0, {})
-G.add_node("1", 1, 0, {})
-G.add_node("2", 1, 1, {})
-G.add_node("3", 0, 1, {})
+G.add_node("0", 0, 0., "ed")
+G.add_node("1", 1, 0., "ed")
+G.add_node("2", 1, 1., "ed")
+G.add_node("3", 0, 1., "ed")
 
 G.add_link("0_1", "0", "1", 1, {"time": 10})
 G.add_link("0_3", "0", "3", 1,{"time": 11})
