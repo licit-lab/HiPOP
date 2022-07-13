@@ -144,7 +144,7 @@ if sys.argv[1] == "bdist_wheel":
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="hipop",
-    version="0.0.1",
+    version="1.0.0",
     long_description="",
     packages=["hipop"],
     ext_modules=[CMakeExtension("hipop.cpp")],
