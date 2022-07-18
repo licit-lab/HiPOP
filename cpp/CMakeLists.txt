@@ -21,8 +21,13 @@ add_subdirectory(src)
 
 # ------------- TESTS -------------
 
-include(CTest)
-add_subdirectory(tests)
+option(BUILD_TESTS "Build HiPOP tests" OFF)
+if(BUILD_TESTS)
+  message(STATUS "Building Tests")
+  include(CTest)
+  add_subdirectory(tests)
+endif(BUILD_TESTS)
+
 
 # ---------------------------------
 
