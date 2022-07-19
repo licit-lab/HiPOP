@@ -1,7 +1,42 @@
-from os import link
 from typing import Dict
 
 from hipop.cpp import Link, Node, OrientedGraph, generate_manhattan, merge_oriented_graph
+
+
+def node_to_dict(node: Node):
+    d = {"ID": node.id,
+         "X": node.position[0],
+         "Y": node.position[1],
+         "LABEL": node.label,
+         "EXCLUDE_MOVEMENTS": node.exclude_movements}
+    return d
+
+
+def dict_to_node(G:OrientedGraph, d:Dict):
+    G.add_node(d["ID"],
+               d["X"],
+               d["Y"],
+               d["LABEL"],
+               d["EXCLUDE_MOVEMENTS"])
+
+
+def link_to_dict(link:Link):
+    d = {"ID": link.id,
+         "UPSTREAM": link.upstream,
+         "DOWNSTREAM": link.downstream,
+         "LENGTH": link.length,
+         "COSTS": link.costs,
+         "LABEL": link.label}
+    return d
+
+
+def dict_to_link(G: OrientedGraph, d: Dict):
+    G.add_link(d["ID"],
+               d["UPSTREAM"],
+               d["DOWNSTREAM"],
+               d["LENGTH"],
+               d["COSTS"],
+               d["LABEL"])
 
 
 def graph_to_dict(G: OrientedGraph) -> Dict:
@@ -9,41 +44,23 @@ def graph_to_dict(G: OrientedGraph) -> Dict:
     links = []
 
     for n in G.nodes.values():
-        d = {"ID": n.id,
-             "X": n.position[0],
-             "Y": n.position[1],
-             "LABEL": n.label,
-             "EXCLUDE_MOVEMENTS": n.exclude_movements}
+        d = node_to_dict(n)
         nodes.append(d)
-    
+
     for l in G.links.values():
-        d = {"ID": l.id,
-             "UPSTREAM": l.upstream,
-             "DOWNSTREAM": l.downstream,
-             "LENGTH": l.length,
-             "COSTS": l.costs,
-             "LABEL": l.label}
+        d = link_to_dict(l)
         links.append(d)
-    
-    return {"NODES": nodes, "LINKS":links}
+
+    return {"NODES": nodes, "LINKS": links}
 
 
 def dict_to_graph(d: Dict) -> OrientedGraph:
     G = OrientedGraph()
 
     for n in d["NODES"]:
-        G.add_node(n["ID"],
-                   n["X"],
-                   n["Y"],
-                   n["LABEL"],
-                   n["EXCLUDE_MOVEMENTS"])
-    
+        dict_to_node(G, n)
+
     for l in d["LINKS"]:
-        G.add_link(l["ID"],
-                   l["UPSTREAM"],
-                   l["DOWNSTREAM"],
-                   l["LENGTH"],
-                   l["COSTS"],
-                   l["LABEL"])
+        dict_to_link(G, l)
 
     return G
