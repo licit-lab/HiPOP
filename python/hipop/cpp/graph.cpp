@@ -37,11 +37,10 @@ void graph(py::module_ &m) {
           .def_readwrite("links", &OrientedGraph::mlinks)
           .def("add_node", py::overload_cast<std::string, double, double, std::string, mapsets>(&OrientedGraph::AddNode),
                py::arg("id"), py::arg("x"), py::arg("y"), py::arg("label"), py::arg("exclude_movements") = mapsets())
-        //   .def("add_node", py::overload_cast<Node*>(&OrientedGraph::AddNode))
           .def("add_link", py::overload_cast<std::string, std::string, std::string, double, std::unordered_map<std::string, double>, std::string>(&OrientedGraph::AddLink),
                py::arg("id"), py::arg("up"), py::arg("down"), py::arg("length"), py::arg("costs"), py::arg("label") = "_def")
-        //   .def("add_link", py::overload_cast<Link*>(&OrientedGraph::AddLink))
-          .def("get_link", &OrientedGraph::getLink);
+          .def("get_link", &OrientedGraph::getLink)
+          .def("update_link_costs", &OrientedGraph::UpdateLinkCosts);
 
     m.def("generate_manhattan", &makeManhattan);
     

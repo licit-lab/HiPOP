@@ -13,27 +13,32 @@
 #include <limits>
 
 
-// OrientedGraph::~OrientedGraph() {
-
-//     for (auto iter : mlinks) {
-//         std::cout<<"Del link "<<iter.second<<std::endl; 
-//         delete iter.second; 
-//     }
+OrientedGraph::~OrientedGraph() {
+    // std::cout<<"Del Graph "<<this<<std::endl;
+    // std::cout<<"Links Graph "<<&mlinks<<std::endl;
+    for (auto iter : mlinks) {
+        // std::cout<<" Del Link "<<iter.first<<" "<<iter.second<<std::endl;
+        // printf("Del Link %p %s \n", iter.second, iter.first.c_str());
+        delete iter.second;
+        iter.second = NULL;
+    }
     
-//     for (auto iter : mnodes) {
-//         for(auto &keyVal:iter.second->madj) {
-//             keyVal.second = NULL;
-//         }
+    for (auto iter : mnodes) {
+        // for(auto &keyVal:iter.second->madj) {
+        //     keyVal.second = NULL;
+        // }
 
-//         delete iter.second; 
+        // for(auto &keyVal:iter.second->mradj) {
+        //     keyVal.second = NULL;
+        // }
+        // std::cout<<" Del Node "<<iter.first<<" "<<iter.second<<std::endl;
+        delete iter.second;
+        iter.second = NULL;
+    }
 
-        
-//     }
-
-
-
-
-// }
+    mnodes.clear();
+    mlinks.clear();
+}
 
 
 void OrientedGraph::AddNode(std::string _id, double x, double y, std::string label, mapsets excludeMovements) {
@@ -66,6 +71,9 @@ void OrientedGraph::AddLink(Link *l) {
 };
 
 
+void OrientedGraph::UpdateLinkCosts(std::string lid, std::unordered_map<std::string, double> _costs) {
+    mlinks[lid]->updateCosts(_costs);
+}
 
 
 void OrientedGraph::ShowNodes() {

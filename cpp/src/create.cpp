@@ -14,14 +14,14 @@ std::unordered_map<std::string, double> makeSimpleCostMap(double linkLength) {
 
 
 
-OrientedGraph makeManhattan(int n, double linkLength) {
-    OrientedGraph G;
+OrientedGraph* makeManhattan(int n, double linkLength) {
+    OrientedGraph *G = new OrientedGraph();
 
     for (size_t i = 0; i < n; i++)
     {
         for (size_t j = 0; j < n; j++)
         {
-            G.AddNode(std::to_string(i*n+j), i*linkLength, j*linkLength);
+            G->AddNode(std::to_string(i*n+j), i*linkLength, j*linkLength);
         }
 
     }
@@ -35,26 +35,26 @@ OrientedGraph makeManhattan(int n, double linkLength) {
             if(j < n-1) {
                 std::string upstream = std::to_string(ind);
                 std::string downstream = std::to_string(ind+1);
-                G.AddLink(upstream + "_" + downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
+                G->AddLink(upstream + "_" + downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
             }
 
             if(j > 0) {
                 std::string upstream = std::to_string(ind);
                 std::string downstream = std::to_string(ind-1);
-                G.AddLink(upstream + "_" + downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
+                G->AddLink(upstream + "_" + downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
             }
 
             if(i < n - 1) {
                 std::string upstream = std::to_string(ind);
                 std::string downstream = std::to_string(ind+n);
 
-                G.AddLink(upstream + "_" + downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
+                G->AddLink(upstream + "_" + downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
             }
 
             if(i > 0) {
                 std::string upstream = std::to_string(ind);
                 std::string downstream = std::to_string(ind-n);
-                G.AddLink(upstream + "_" + downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
+                G->AddLink(upstream + "_" + downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
             }
         }
 
@@ -65,9 +65,9 @@ OrientedGraph makeManhattan(int n, double linkLength) {
     {
         std::string upstream = "WEST_"+std::to_string(i);
         std::string downstream = std::to_string(i);
-        G.AddNode(upstream, -linkLength, i*linkLength);
-        G.AddLink(upstream+"_"+downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
-        G.AddLink(downstream+"_"+upstream, downstream, upstream, linkLength, makeSimpleCostMap(linkLength));
+        G->AddNode(upstream, -linkLength, i*linkLength);
+        G->AddLink(upstream+"_"+downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
+        G->AddLink(downstream+"_"+upstream, downstream, upstream, linkLength, makeSimpleCostMap(linkLength));
     }
 
     counter = 0;
@@ -75,9 +75,9 @@ OrientedGraph makeManhattan(int n, double linkLength) {
     {
         std::string upstream = "EAST_"+std::to_string(counter);
         std::string downstream = std::to_string(i);
-        G.AddNode(upstream, n*linkLength, counter*linkLength);
-        G.AddLink(upstream+"_"+downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
-        G.AddLink(downstream+"_"+upstream, downstream, upstream, linkLength, makeSimpleCostMap(linkLength));
+        G->AddNode(upstream, n*linkLength, counter*linkLength);
+        G->AddLink(upstream+"_"+downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
+        G->AddLink(downstream+"_"+upstream, downstream, upstream, linkLength, makeSimpleCostMap(linkLength));
         counter++;
     }
 
@@ -86,9 +86,9 @@ OrientedGraph makeManhattan(int n, double linkLength) {
     {
         std::string upstream = "NORTH_"+std::to_string(counter);
         std::string downstream = std::to_string(i);
-        G.AddNode(upstream, counter*linkLength, n*linkLength);
-        G.AddLink(upstream+"_"+downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
-        G.AddLink(downstream+"_"+upstream, downstream, upstream, linkLength, makeSimpleCostMap(linkLength));
+        G->AddNode(upstream, counter*linkLength, n*linkLength);
+        G->AddLink(upstream+"_"+downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
+        G->AddLink(downstream+"_"+upstream, downstream, upstream, linkLength, makeSimpleCostMap(linkLength));
         counter++;
     }
 
@@ -97,9 +97,9 @@ OrientedGraph makeManhattan(int n, double linkLength) {
     {
         std::string upstream = "SOUTH_"+std::to_string(counter);
         std::string downstream = std::to_string(i);
-        G.AddNode(upstream, counter*linkLength, -linkLength);
-        G.AddLink(upstream+"_"+downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
-        G.AddLink(downstream+"_"+upstream, downstream, upstream, linkLength, makeSimpleCostMap(linkLength));
+        G->AddNode(upstream, counter*linkLength, -linkLength);
+        G->AddLink(upstream+"_"+downstream, upstream, downstream, linkLength, makeSimpleCostMap(linkLength));
+        G->AddLink(downstream+"_"+upstream, downstream, upstream, linkLength, makeSimpleCostMap(linkLength));
         counter++;
     }
 

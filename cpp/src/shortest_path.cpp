@@ -366,11 +366,11 @@ std::vector<std::vector<pathCost>> parallelKShortestPath(OrientedGraph &G, const
     std::vector<std::vector<pathCost>> res(nbOD);
     OrientedGraph *privateG;
 
-#pragma omp parallel shared(res, accessibleLabels, G) private(privateG)
+    #pragma omp parallel shared(res, accessibleLabels, G) private(privateG)
     {
         privateG = copyGraph(G);
 
-#pragma omp for
+        #pragma omp for
         for (int i = 0; i < nbOD; i++)
         {
             // std::cout<<i<<": ";
@@ -385,7 +385,18 @@ std::vector<std::vector<pathCost>> parallelKShortestPath(OrientedGraph &G, const
                 // std::cout<<origins[i]<<" "<<destinations[i]<<std::endl;
             }
         }
+
+        #pragma omp critical
+        {   
+            // std::cout<<"Start delete "<<omp_get_thread_num()<<std::endl;
+            delete privateG;
+            // std::cout<<"End delete "<<omp_get_thread_num()<<std::endl;
+        }
+        
     }
+
+    // std::cout<<"End KSP"<<std::endl;
+
     return res;
 }
 

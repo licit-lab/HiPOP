@@ -7,6 +7,8 @@ create_test_sourcelist (Tests
   testDijkstra2.cpp
   testKShortestPath.cpp
   testYenKShortestPath.cpp
+  testManhattan.cpp
+  testparallelKShortestPath.cpp
 )
 
 # add the executable

@@ -130,6 +130,7 @@ public:
     void AddNode(Node *n);
     void AddLink(std::string _id, std::string _up, std::string _down, double length, std::unordered_map<std::string, double> _costs, std::string label = "");
     void AddLink(Link* l);
+    void UpdateLinkCosts(std::string lid, std::unordered_map<std::string, double> _costs);
 
     void ShowNodes();
     void ShowLinks();
@@ -150,7 +151,7 @@ public:
             mlinks[keyVal.first] = newLink;
         }
     }
-    // ~OrientedGraph();
+    ~OrientedGraph();
 
 };
 
