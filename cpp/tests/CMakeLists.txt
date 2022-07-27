@@ -16,6 +16,7 @@ add_executable (CommonCxxTests ${Tests})
 target_link_libraries(CommonCxxTests hipoplib)
 target_include_directories(CommonCxxTests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+set_property(TARGET CommonCxxTests PROPERTY CXX_STANDARD 17)
 
 # remove the test driver source file
 set (TestsToRun ${Tests})
