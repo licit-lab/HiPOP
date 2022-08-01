@@ -124,6 +124,10 @@ class CMakeBuild(build_ext):
         )
 
 
+if sys.argv[1] == "bdist_wheel":
+    from install_cpp import main
+
+    main()
 
 
 # The information here can also be placed in setup.cfg - better separation of

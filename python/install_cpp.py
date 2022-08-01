@@ -17,6 +17,7 @@ def build_hipop_cpp(prefix):
         sys.exit(-1)
     finally:
         temp_dir.cleanup()
+        os.chdir(Path(__file__).parent)
 
 
 def main():
