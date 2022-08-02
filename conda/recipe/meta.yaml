@@ -1,0 +1,57 @@
+{% set version = "0.0.1" %}
+package:
+  name: hipop-pkgs
+  version: {{ version }}
+
+source:
+  path: ../..
+
+build:
+  number: 0
+  skip: true  # [win]
+
+outputs:
+  - name: hipoplib
+    version: {{ version }}
+    build:
+      script: ${RECIPE_DIR}/build-hipoplib.sh
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - make
+        - cmake
+        - openmp
+    test:
+      script: ${RECIPE_DIR}/test-hipoplib.sh
+
+  - name: hipop
+    version: {{ version }}
+    build:
+      script: $PYTHON -m pip install --no-deps ./python
+    requirements:
+      build:
+        - {{ compiler('cxx') }}
+        - make
+        - cmake
+        - python=3.8
+      host:
+        - python=3.8
+        - hipoplib
+        - pybind11
+      run:
+        - python=3.8
+        - hipoplib
+        - numpy
+        - matplotlib
+    test:
+      imports:
+        - hipop.cpp
+
+about:
+#  license: LGPL 3.0
+  # license_file:
+  summary: 'HiPOP is a graph implementation for traffic simulation in C++ with python bindings.'
+  description: |
+    HiPOP is a graph implementation for traffic simulation in C++ with python bindings.
+#  doc_url:
+  dev_url: https://github.com/licit-lab/HiPOP
