@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 def build_hipop_cpp(prefix):
+    cwd = os.getcwd()
     src_dir = Path(__file__).parent.parent.joinpath("cpp").resolve()
     temp_dir = tempfile.TemporaryDirectory()
     os.chdir(temp_dir.name)
@@ -17,7 +18,7 @@ def build_hipop_cpp(prefix):
         sys.exit(-1)
     finally:
         temp_dir.cleanup()
-        os.chdir(Path(__file__).parent)
+        os.chdir(cwd)
 
 
 def main():

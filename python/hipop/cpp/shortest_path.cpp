@@ -5,6 +5,7 @@
 
 namespace py = pybind11;
 
+namespace hipop_wrappers {
 
 void shortest_path(py::module_ &m) {
     m.def("dijkstra", &dijkstra, py::arg("graph"), py::arg("origin"), py::arg("destination"), py::arg("cost"), py::arg("available_labels") = setstring());
@@ -13,4 +14,6 @@ void shortest_path(py::module_ &m) {
     m.def("parallel_k_shortest_path", &parallelKShortestPath);
     m.def("yen_k_shortest_path", &YenKShortestPath);
     m.def("astar_euclidian_dist", &aStarEuclidianDist);
+}
+
 }

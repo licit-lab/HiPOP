@@ -52,6 +52,7 @@ class CMakeBuild(build_ext):
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
             "-DCMAKE_PREFIX_PATH={}".format(sys.prefix),
+            "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
         ]
         build_args = []
         # Adding CMake arguments set as environment variable

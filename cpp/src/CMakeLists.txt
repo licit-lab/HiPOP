@@ -5,6 +5,7 @@ set(HIPOP_SRC
 )
 
 add_library(hipoplib ${HIPOP_SRC})
+set_target_properties(hipoplib PROPERTIES POSITION_INDEPENDENT_CODE ON)  # Needed to link the hipop static lib to the pybind dynamic one
 
 target_link_libraries(hipoplib PUBLIC OpenMP::OpenMP_CXX)
 
