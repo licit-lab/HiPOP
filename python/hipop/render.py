@@ -1,4 +1,4 @@
-from hipop.graph import OrientedGraph
+from hipop.cpp.graph import OrientedGraph
 
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection

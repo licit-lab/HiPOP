@@ -7,13 +7,17 @@
 
 namespace py = pybind11;
 
-
-void graph(py::module_ &);
-void shortest_path(py::module_ &);
+namespace hipop_wrappers {
+    void graph(py::module_ &);
+    void shortest_path(py::module_ &);
+}
 
 PYBIND11_MODULE(cpp, m) {
-    
-    graph(m);
-    shortest_path(m);
+
+    py::module graph = m.def_submodule("graph", "Graph module");
+    hipop_wrappers::graph(graph);
+
+    py::module shortest_path = m.def_submodule("shortest_path", "Shortest path module");
+    hipop_wrappers::shortest_path(shortest_path);
 
 }

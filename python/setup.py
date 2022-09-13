@@ -4,6 +4,7 @@ import re
 import subprocess
 import sys
 import codecs
+from pathlib import Path
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
@@ -51,6 +52,7 @@ class CMakeBuild(build_ext):
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
             "-DCMAKE_PREFIX_PATH={}".format(sys.prefix),
+            "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
         ]
         build_args = []
         # Adding CMake arguments set as environment variable
@@ -130,11 +132,11 @@ if sys.argv[1] == "bdist_wheel":
     main()
 
 
-
 def read(rel_path):
-    here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
+    here = Path(__file__).parent.resolve()
+    with codecs.open(here.joinpath(rel_path), 'r') as fp:
         return fp.read()
+
 
 def get_version(rel_path):
     for line in read(rel_path).splitlines():
@@ -143,7 +145,6 @@ def get_version(rel_path):
             return line.split(delim)[1]
     else:
         raise RuntimeError("Unable to find version string.")
-
 
 
 # The information here can also be placed in setup.cfg - better separation of
