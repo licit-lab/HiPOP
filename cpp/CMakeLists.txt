@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(HiPOP VERSION 0.0.1)
+project(HiPOP VERSION 0.0.2)
 
 
 find_package(OpenMP REQUIRED)
