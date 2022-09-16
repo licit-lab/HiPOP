@@ -38,6 +38,11 @@ pathCost dijkstra(const OrientedGraph &G, const std::string &origin, const std::
     path.second = inf;
     prev[origin] = "";
 
+    if (origin==destination) {
+      path.second = 0;
+      return path;
+    }
+
     while (!pq.empty())
     {
         QueueItem current = pq.top();
@@ -387,12 +392,12 @@ std::vector<std::vector<pathCost>> parallelKShortestPath(OrientedGraph &G, const
         }
 
         #pragma omp critical
-        {   
+        {
             // std::cout<<"Start delete "<<omp_get_thread_num()<<std::endl;
             delete privateG;
             // std::cout<<"End delete "<<omp_get_thread_num()<<std::endl;
         }
-        
+
     }
 
     // std::cout<<"End KSP"<<std::endl;
@@ -420,6 +425,11 @@ pathCost aStar(const OrientedGraph &G, const std::string &origin, const std::str
 
     path.second = inf;
     prev[origin] = "";
+
+    if (origin == destination){
+      path.second = 0;
+      return path;
+    }
 
     while (!pq.empty())
     {

@@ -10,6 +10,8 @@
 typedef std::set<std::string> setstring;
 typedef std::pair<std::vector<std::string>, double> pathCost;
 
+double computePathLength(OrientedGraph &G, const std::vector<std::string> &path);
+
 pathCost dijkstra(const OrientedGraph &G, const std::string &origin, const std::string &destination, const std::string &cost, setstring accessibleLabels = {});
 pathCost aStar(const OrientedGraph &G, const std::string &origin, const std::string &destination, const std::string &cost, const setstring &accessibleLabels, std::function<double(const Node *, const Node *)> heuristic);
 pathCost aStarEuclidianDist(const OrientedGraph &G, const std::string &origin, const std::string &destination, const std::string &cost, const setstring &accessibleLabels);

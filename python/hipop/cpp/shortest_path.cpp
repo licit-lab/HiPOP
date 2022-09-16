@@ -14,6 +14,7 @@ void shortest_path(py::module_ &m) {
     m.def("parallel_k_shortest_path", &parallelKShortestPath);
     m.def("yen_k_shortest_path", &YenKShortestPath);
     m.def("astar_euclidian_dist", &aStarEuclidianDist);
+    m.def("compute_path_length", &computePathLength);
 }
 
 }
