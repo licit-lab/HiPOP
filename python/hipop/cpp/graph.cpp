@@ -6,6 +6,7 @@
 
 namespace py = pybind11;
 
+namespace hipop_wrappers {
 
 void graph(py::module_ &m) {
     py::class_<Link>(m, "Link")
@@ -20,7 +21,7 @@ void graph(py::module_ &m) {
         .def("update_costs", &Link::updateCosts);
 
     py::class_<Node>(m, "Node")
-          .def(py::init<std::string, double, double, std::string, std::unordered_map<std::string, std::set<std::string> > >(), 
+          .def(py::init<std::string, double, double, std::string, std::unordered_map<std::string, std::set<std::string> > >(),
                py::arg("id"), py::arg("x"), py::arg("y"), py::arg("label") = "",py::arg("exclude_movements") = mapsets())
           .def_readonly("id", &Node::mid)
           .def_readonly("position", &Node::mposition)
@@ -43,6 +44,8 @@ void graph(py::module_ &m) {
           .def("update_link_costs", &OrientedGraph::UpdateLinkCosts);
 
     m.def("generate_manhattan", &makeManhattan);
-    
+
     m.def("merge_oriented_graph", &mergeOrientedGraph);
+}
+
 }

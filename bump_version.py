@@ -8,10 +8,12 @@ files = [("cpp/CMakeLists.txt", re.compile(rf"(project\(HiPOP VERSION )({PATTERN
          ("python/hipop/__init__.py", re.compile(rf'(__version__ = ")({PATTERN_VERSION})(")')),
          ("conda/recipe/meta.yaml", re.compile(r'({% set version = ")('+PATTERN_VERSION+r')(" %})'))]
 
+
 def read(file):
     with open(file, "r") as f:
         contents = f.read()
     return contents
+
 
 def write(file, new_contents):
     with open(file, "w") as f:
@@ -25,6 +27,7 @@ def show_diff(contents, new_contents):
     for i, (lc, lnc) in enumerate(zip(contents.split("\n"), new_contents.split("\n"))):
         if lc != lnc:
             print(f"\tline {i}: {lc} -> {lnc}")
+
 
 if __name__ == "__main__":
     import argparse
