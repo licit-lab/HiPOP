@@ -177,7 +177,7 @@ std::vector<pathCost> KShortestPath(OrientedGraph &G, const std::string &origin,
     std::vector<pathCost> paths;
     mapCosts initial_costs;
 
-    pathCost firstPath = dijkstra(G, origin, destination, cost);
+    pathCost firstPath = dijkstra(G, origin, destination, cost, accessibleLabels);
     paths.push_back(firstPath);
 
     if (firstPath.first.empty())
@@ -196,7 +196,7 @@ std::vector<pathCost> KShortestPath(OrientedGraph &G, const std::string &origin,
 
     while (pathCounter < kPath && retry < 10)
     {
-        pathCost newPath = dijkstra(G, origin, destination, cost);
+        pathCost newPath = dijkstra(G, origin, destination, cost, accessibleLabels);
         // std::cout << "Computed path: ";
         // showPath(newPath);
 
@@ -379,13 +379,13 @@ std::vector<std::vector<pathCost>> parallelKShortestPath(OrientedGraph &G, const
         for (int i = 0; i < nbOD; i++)
         {
             // std::cout<<i<<": ";
-            if (accessibleLabels.empty())
+            if (accessibleLabels[i].empty())
             {
                 res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, {}, minDist, maxDist, kPath);
             }
             else
             {
-                // std::cout<<origins[i]<<" "<<destinations[i]<<std::endl;
+                // std::cout<<origins[i]<<" "<<destinations[i]<<accessibleLabels[i].size()<<std::endl;
                 res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, accessibleLabels[i], minDist, maxDist, kPath);
                 // std::cout<<origins[i]<<" "<<destinations[i]<<std::endl;
             }
