@@ -31,9 +31,8 @@ int testparallelKShortestPath(int argc, char *argv[])
         {{"CAR", "PersonalVehicle"}}, 
         {{"CAR", "PersonalVehicle"}}, 
         {{"CAR", "PersonalVehicle"}}, 
-        {{"CAR", "PersonalVehicle"}}}; 
-    
-
+        {{"CAR", "PersonalVehicle"}}
+    };
     
     auto paths = parallelKShortestPath(G, origins, destinations, "time", vecMapLabelCosts, {}, 0, 10, 4, 4);
 

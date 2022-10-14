@@ -23,14 +23,16 @@ pathCost aStar(
     const OrientedGraph &G, 
     const std::string &origin, 
     const std::string &destination, 
-    const std::string &cost, 
+    const std::string &cost,
+    const std::unordered_map<std::string, std::string> &mapLabelCost, 
     const setstring &accessibleLabels, 
     std::function<double(const Node *, const Node *)> heuristic);
 pathCost aStarEuclidianDist(
     const OrientedGraph &G, 
     const std::string &origin, 
     const std::string &destination, 
-    const std::string &cost, 
+    const std::string &cost,
+    const std::unordered_map<std::string, std::string> &mapLabelCost, 
     const setstring &accessibleLabels);
 
 std::vector<pathCost> parallelDijkstra(
@@ -38,7 +40,9 @@ std::vector<pathCost> parallelDijkstra(
     std::vector<std::string> origins, 
     std::vector<std::string> destinations, 
     std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts, 
-    std::string cost, int threadNumber, std::vector<setstring> vecAvailableLabels = {});
+    std::string cost, 
+    int threadNumber, 
+    std::vector<setstring> vecAvailableLabels = {});
 
 std::vector<pathCost> YenKShortestPath(
     OrientedGraph &G, 

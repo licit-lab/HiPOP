@@ -464,8 +464,8 @@ pathCost aStar(
     const std::string &origin, 
     const std::string &destination, 
     const std::string &cost, 
-    const setstring &accessibleLabels,
     const std::unordered_map<std::string, std::string> &mapLabelCost,
+    const setstring &accessibleLabels,
     std::function<double(const Node *, const Node *)> heuristic)
 {
     pathCost path;
@@ -538,7 +538,13 @@ double euclidianDist(const Node *current, const Node *dest)
     return std::sqrt(std::pow(dest->mposition[0] - current->mposition[0], 2) + std::pow(dest->mposition[1] - current->mposition[1], 2));
 }
 
-pathCost aStarEuclidianDist(const OrientedGraph &G, const std::string &origin, const std::string &destination, const std::string &cost, const setstring &accessibleLabels)
+pathCost aStarEuclidianDist(
+    const OrientedGraph &G, 
+    const std::string &origin, 
+    const std::string &destination, 
+    const std::string &cost,
+    const std::unordered_map<std::string, std::string> &mapLabelCost, 
+    const setstring &accessibleLabels)
 {
-    return aStar(G, origin, destination, cost, accessibleLabels, euclidianDist);
+    return aStar(G, origin, destination, cost, mapLabelCost, accessibleLabels, euclidianDist);
 }
