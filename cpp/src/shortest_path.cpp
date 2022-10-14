@@ -17,7 +17,13 @@
 typedef std::pair<double, std::string> QueueItem;
 typedef std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<QueueItem>> PriorityQueue;
 
-pathCost dijkstra(const OrientedGraph &G, const std::string &origin, const std::string &destination, const std::string &cost, setstring accessibleLabels)
+pathCost dijkstra(
+    const OrientedGraph &G, 
+    const std::string &origin, 
+    const std::string &destination, 
+    const std::string &cost, 
+    const std::unordered_map<std::string, std::string> &mapLabelCost, 
+    setstring accessibleLabels)
 {
     pathCost path;
 
@@ -47,7 +53,6 @@ pathCost dijkstra(const OrientedGraph &G, const std::string &origin, const std::
     {
         QueueItem current = pq.top();
         pq.pop();
-        // std::cout<<"Current: "<<current.first<<" "<<current.second<<std::endl;
         std::string u = current.second;
 
         if (u == destination)
@@ -72,7 +77,7 @@ pathCost dijkstra(const OrientedGraph &G, const std::string &origin, const std::
             if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
             {
                 std::string neighbor = link->mdownstream;
-                double new_dist = dist[u] + link->mcosts[cost];
+                double new_dist = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost];
 
                 if (dist[neighbor] > new_dist)
                 {
@@ -86,32 +91,39 @@ pathCost dijkstra(const OrientedGraph &G, const std::string &origin, const std::
     return path;
 }
 
-std::vector<pathCost> parallelDijkstra(const OrientedGraph &G, std::vector<std::string> origins, std::vector<std::string> destinations, std::string cost, int threadNumber, std::vector<setstring> vecAvailableLabels)
+std::vector<pathCost> parallelDijkstra(
+    const OrientedGraph &G, 
+    std::vector<std::string> origins, 
+    std::vector<std::string> destinations,
+    std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+    std::string cost, 
+    int threadNumber, 
+    std::vector<setstring> vecAvailableLabels)
 {
     omp_set_num_threads(threadNumber);
 
     int nbPath = origins.size();
     std::vector<pathCost> res(nbPath);
 
-#pragma omp parallel for shared(res, vecAvailableLabels) schedule(dynamic)
+    #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
     for (int i = 0; i < nbPath; i++)
     {
         if (vecAvailableLabels.empty())
         {
-            res[i] = dijkstra(G, origins[i], destinations[i], cost, {});
+            res[i] = dijkstra(G, origins[i], destinations[i], cost, vecMapLabelCosts[i], {});
         }
         else
         {
-            res[i] = dijkstra(G, origins[i], destinations[i], cost, vecAvailableLabels[i]);
+            res[i] = dijkstra(G, origins[i], destinations[i], cost, vecMapLabelCosts[i], vecAvailableLabels[i]);
         }
     }
 
     return res;
 }
 
-typedef std::unordered_map<std::string, std::unordered_map<std::string, double>> mapCosts;
+typedef std::unordered_map<std::string, mapcosts> linkMapCosts;
 
-void increaseCostsFromPath(OrientedGraph &G, const std::vector<std::string> &path, mapCosts &initial_costs)
+void increaseCostsFromPath(OrientedGraph &G, const std::vector<std::string> &path, linkMapCosts &initial_costs)
 {
 
     for (size_t i = 0; i < path.size() - 1; i++)
@@ -119,18 +131,27 @@ void increaseCostsFromPath(OrientedGraph &G, const std::vector<std::string> &pat
         Link *link = G.mnodes[path[i]]->madj[path[i + 1]];
         if (initial_costs.find(link->mid) == initial_costs.end())
         {
-            for (auto &keyVal : link->mcosts)
+            for (auto &keyMapCost : link->mcosts)
             {
-                initial_costs[link->mid][keyVal.first] = keyVal.second;
-                keyVal.second *= 10;
+                for(auto &keyVal: keyMapCost.second) {
+                    initial_costs[link->mid][keyMapCost.first][keyVal.first] = keyVal.second;
+                    keyVal.second *= 10;
+                }
+                // initial_costs[link->mid][keyVal.first] = keyVal.second;
+                // keyVal.second *= 10;
             }
         }
         else
         {
-            for (auto &keyVal : link->mcosts)
-            {
-                keyVal.second *= 10;
+            for(auto &keyMapCost: link->mcosts) {
+                for(auto &keyVal: keyMapCost.second) {
+                    keyVal.second *= 10;
+                }
             }
+            // for (auto &keyVal : link->mcosts)
+            // {
+            //     keyVal.second *= 10;
+            // }
         }
     }
 }
@@ -148,15 +169,14 @@ double computePathLength(OrientedGraph &G, const std::vector<std::string> &path)
     return length;
 }
 
-double computePathCost(OrientedGraph &G, const std::vector<std::string> &path, std::string cost)
+double computePathCost(OrientedGraph &G, const std::vector<std::string> &path, std::string cost, const std::unordered_map<std::string, std::string> mapLabelCost)
 {
     double c = 0;
 
     for (size_t i = 0; i < path.size() - 1; i++)
     {
         Link *link = G.mnodes[path[i]]->madj[path[i + 1]];
-        c += link->mcosts[cost];
-        // std::cout<<link->mcosts[cost]<<std::endl;
+        c += link->mcosts[mapLabelCost.at(link->mlabel)][cost];
     }
 
     return c;
@@ -172,12 +192,21 @@ void showPath(pathCost path)
     std::cout << "]" << std::endl;
 }
 
-std::vector<pathCost> KShortestPath(OrientedGraph &G, const std::string &origin, const std::string &destination, const std::string &cost, setstring accessibleLabels, double minDist, double maxDist, int kPath)
+std::vector<pathCost> KShortestPath(
+    OrientedGraph &G, 
+    const std::string &origin, 
+    const std::string &destination, 
+    const std::string &cost, 
+    setstring accessibleLabels,
+    const std::unordered_map<std::string, std::string> &mapLabelCost,
+    double minDist, 
+    double maxDist, 
+    int kPath)
 {
     std::vector<pathCost> paths;
-    mapCosts initial_costs;
+    linkMapCosts initial_costs;
 
-    pathCost firstPath = dijkstra(G, origin, destination, cost, accessibleLabels);
+    pathCost firstPath = dijkstra(G, origin, destination, cost, mapLabelCost, accessibleLabels);
     paths.push_back(firstPath);
 
     if (firstPath.first.empty())
@@ -196,7 +225,7 @@ std::vector<pathCost> KShortestPath(OrientedGraph &G, const std::string &origin,
 
     while (pathCounter < kPath && retry < 10)
     {
-        pathCost newPath = dijkstra(G, origin, destination, cost, accessibleLabels);
+        pathCost newPath = dijkstra(G, origin, destination, cost, mapLabelCost, accessibleLabels);
         // std::cout << "Computed path: ";
         // showPath(newPath);
 
@@ -251,7 +280,7 @@ std::vector<pathCost> KShortestPath(OrientedGraph &G, const std::string &origin,
     for (auto &p : paths)
     {
         // showPath(p);
-        p.second = computePathCost(G, p.first, cost);
+        p.second = computePathCost(G, p.first, cost, mapLabelCost);
         // showPath(p);
     }
     // showPath(firstPath);
@@ -259,11 +288,18 @@ std::vector<pathCost> KShortestPath(OrientedGraph &G, const std::string &origin,
     return paths;
 }
 
-std::vector<pathCost> YenKShortestPath(OrientedGraph &G, std::string origin, std::string destination, std::string cost, setstring accessibleLabels, int kPath)
+std::vector<pathCost> YenKShortestPath(
+    OrientedGraph &G, 
+    std::string origin, 
+    std::string destination, 
+    std::string cost, 
+    setstring accessibleLabels,
+    const std::unordered_map<std::string, std::string> &mapLabelCost, 
+    int kPath)
 {
     std::vector<pathCost> A;
     std::vector<pathCost> B;
-    A.push_back(dijkstra(G, origin, destination, cost, accessibleLabels));
+    A.push_back(dijkstra(G, origin, destination, cost, mapLabelCost, accessibleLabels));
     // std::cout << "First path: ";
     // showPath(A[0]);
 
@@ -276,7 +312,7 @@ std::vector<pathCost> YenKShortestPath(OrientedGraph &G, std::string origin, std
         for (size_t i = 0; i < A[k - 1].first.size() - 2; i++)
         {
             // std::cout<<"i="<<i<<std::endl;
-            std::unordered_map<std::string, double> initial_costs;
+            std::unordered_map<std::string, std::pair<std::string, double> > initial_costs;
             std::string spurNode = A[k - 1].first[i];
             pathCost rootPath;
             rootPath.second = 0;
@@ -287,7 +323,8 @@ std::vector<pathCost> YenKShortestPath(OrientedGraph &G, std::string origin, std
             for (int j = 0; j < rootPath.first.size() - 1; j++)
             {
                 // std::cout<<"Getting cost "<<G.mnodes[rootPath.first[j]]->madj[rootPath.first[j+1]]<<std::endl;
-                rootPath.second += G.mnodes[rootPath.first[j]]->madj[rootPath.first[j + 1]]->mcosts[cost];
+                Link *l = G.mnodes[rootPath.first[j]]->madj[rootPath.first[j + 1]];
+                rootPath.second += l->mcosts[mapLabelCost.at(l->mlabel)][cost];
             }
 
             for (const pathCost &pc : A)
@@ -302,15 +339,15 @@ std::vector<pathCost> YenKShortestPath(OrientedGraph &G, std::string origin, std
 
                     if (initial_costs.find(l->mid) == initial_costs.end())
                     {
-                        initial_costs[l->mid] = l->mcosts[cost];
+                        initial_costs[l->mid] = {mapLabelCost.at(l->mlabel), l->mcosts[mapLabelCost.at(l->mlabel)][cost]};
                     }
-                    l->mcosts[cost] = inf;
+                    l->mcosts[mapLabelCost.at(l->mlabel)][cost] = inf;
                 }
             }
 
             // std::cout<<"Finish removing"<<std::endl;
 
-            pathCost spurPath = dijkstra(G, spurNode, destination, cost, accessibleLabels);
+            pathCost spurPath = dijkstra(G, spurNode, destination, cost, mapLabelCost, accessibleLabels);
             pathCost totalPath;
             totalPath.first = rootPath.first;
 
@@ -326,7 +363,7 @@ std::vector<pathCost> YenKShortestPath(OrientedGraph &G, std::string origin, std
 
             for (const auto &keyVal : initial_costs)
             {
-                G.mlinks[keyVal.first]->mcosts[cost] = keyVal.second;
+                G.mlinks[keyVal.first]->mcosts[keyVal.second.first][cost] = keyVal.second.second;
                 // std::cout<<G.mlinks[keyVal.first]<<std::endl;
                 // std::cout<<G.mnodes["C"]->madj["E"]<<std::endl;
             }
@@ -364,38 +401,55 @@ std::vector<pathCost> YenKShortestPath(OrientedGraph &G, std::string origin, std
     return A;
 }
 
-std::vector<std::vector<pathCost>> parallelKShortestPath(OrientedGraph &G, const std::vector<std::string> &origins, const std::vector<std::string> &destinations, const std::string &cost, const std::vector<setstring> accessibleLabels, double minDist, double maxDist, int kPath, int threadNumber)
+std::vector<std::vector<pathCost>> parallelKShortestPath(
+    OrientedGraph &G, 
+    const std::vector<std::string> &origins, 
+    const std::vector<std::string> &destinations, 
+    const std::string &cost,
+    const std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+    const std::vector<setstring> accessibleLabels,
+    double minDist, 
+    double maxDist, 
+    int kPath, 
+    int threadNumber)
 {
+    omp_set_num_threads(threadNumber);
     int nbOD = origins.size();
 
     std::vector<std::vector<pathCost>> res(nbOD);
     OrientedGraph *privateG;
 
-    #pragma omp parallel shared(res, accessibleLabels, G) private(privateG)
+    // std::cout<<"Launching parallel K shortest paths"<<std::endl;
+
+    #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins, destinations) private(privateG)
     {
+        // std::cout<<"Copy Graph "<<omp_get_thread_num()<<std::endl;
         privateG = copyGraph(G);
+        // std::cout<<"Done!!"<<std::endl;
 
         #pragma omp for
         for (int i = 0; i < nbOD; i++)
         {
-            // std::cout<<i<<": ";
-            if (accessibleLabels[i].empty())
+            // std::cout<<i<<": "<<std::endl;
+            if (accessibleLabels.empty())
             {
-                res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, {}, minDist, maxDist, kPath);
+                // std::cout<<origins[i]<<" "<<destinations[i]<<std::endl;
+                res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, {}, vecMapLabelCosts[i], minDist, maxDist, kPath);
+                // std::cout<<origins[i]<<" "<<destinations[i]<<std::endl;
             }
             else
             {
                 // std::cout<<origins[i]<<" "<<destinations[i]<<accessibleLabels[i].size()<<std::endl;
-                res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, accessibleLabels[i], minDist, maxDist, kPath);
+                res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, accessibleLabels[i], vecMapLabelCosts[i], minDist, maxDist, kPath);
                 // std::cout<<origins[i]<<" "<<destinations[i]<<std::endl;
             }
         }
 
         #pragma omp critical
         {
-            // std::cout<<"Start delete "<<omp_get_thread_num()<<std::endl;
+            std::cout<<"Start delete "<<omp_get_thread_num()<<std::endl;
             delete privateG;
-            // std::cout<<"End delete "<<omp_get_thread_num()<<std::endl;
+            std::cout<<"End delete "<<omp_get_thread_num()<<std::endl;
         }
 
     }
@@ -405,7 +459,14 @@ std::vector<std::vector<pathCost>> parallelKShortestPath(OrientedGraph &G, const
     return res;
 }
 
-pathCost aStar(const OrientedGraph &G, const std::string &origin, const std::string &destination, const std::string &cost, const setstring &accessibleLabels, std::function<double(const Node *, const Node *)> heuristic)
+pathCost aStar(
+    const OrientedGraph &G, 
+    const std::string &origin, 
+    const std::string &destination, 
+    const std::string &cost, 
+    const setstring &accessibleLabels,
+    const std::unordered_map<std::string, std::string> &mapLabelCost,
+    std::function<double(const Node *, const Node *)> heuristic)
 {
     pathCost path;
 
@@ -458,7 +519,7 @@ pathCost aStar(const OrientedGraph &G, const std::string &origin, const std::str
             if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
             {
                 std::string neighbor = link->mdownstream;
-                double tentative_score = dist[u] + link->mcosts[cost];
+                double tentative_score = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost];
 
                 if (tentative_score < dist[neighbor])
                 {

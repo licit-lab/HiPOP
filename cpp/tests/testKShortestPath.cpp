@@ -15,15 +15,15 @@ int testKShortestPath(int argc, char *argv[])
     G.AddNode("3", 2, 0);
     G.AddNode("4", 2, 1);
 
-    G.AddLink("0_1", "0", "1", 1, {{"time", 14}});
-    G.AddLink("1_3", "1", "3", 1, {{"time", 12}});
-    G.AddLink("0_2", "0", "2", 1, {{"time", 12}});
-    G.AddLink("2_3", "2", "3", 1, {{"time", 12}});
-    G.AddLink("0_3", "0", "3", 1, {{"time", 12}});
-    G.AddLink("0_4", "0", "4", 11, {{"time", 14}});
-    G.AddLink("4_3", "4", "3", 11, {{"time", 12}});
+    G.AddLink("0_1", "0", "1", 1, {{"PersonalVehicle", {{"time", 14}}}}, "CAR");
+    G.AddLink("1_3", "1", "3", 1, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
+    G.AddLink("0_2", "0", "2", 1, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
+    G.AddLink("2_3", "2", "3", 1, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
+    G.AddLink("0_3", "0", "3", 1, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
+    G.AddLink("0_4", "0", "4", 11, {{"PersonalVehicle", {{"time", 14}}}}, "CAR");
+    G.AddLink("4_3", "4", "3", 11, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
 
-    auto paths = KShortestPath(G, "0", "3", "time", {}, 0, 10, 4);
+    auto paths = KShortestPath(G, "0", "3", "time", {}, {{"CAR", "PersonalVehicle"}}, 0, 10, 4);
     assertTrue(paths.size()==3, "Did not found 3 paths");
     
 

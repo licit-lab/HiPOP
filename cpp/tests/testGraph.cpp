@@ -23,9 +23,9 @@ int testGraph(int argc, char *argv[])
     G->AddNode(newNode);
     
     G->AddNode("d", 435, 345);
-    G->AddLink("a_b", "a", "b", 12, {{"time", 12}});
-    G->AddLink("b_c", "b", "c", 12, {{"time", 12}});
-    G->AddLink("b_d", "b", "d", 12, {{"time", 12}});
+    G->AddLink("a_b", "a", "b", 12, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
+    G->AddLink("b_c", "b", "c", 12, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
+    G->AddLink("b_d", "b", "d", 12, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
 
     std::vector<Link*> exits = G->mnodes["b"]->getExits("a");
     
