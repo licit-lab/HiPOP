@@ -447,9 +447,9 @@ std::vector<std::vector<pathCost>> parallelKShortestPath(
 
         #pragma omp critical
         {
-            std::cout<<"Start delete "<<omp_get_thread_num()<<std::endl;
+            // std::cout<<"Start delete "<<omp_get_thread_num()<<std::endl;
             delete privateG;
-            std::cout<<"End delete "<<omp_get_thread_num()<<std::endl;
+            // std::cout<<"End delete "<<omp_get_thread_num()<<std::endl;
         }
 
     }
