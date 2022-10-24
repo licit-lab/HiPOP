@@ -6,9 +6,9 @@
 
 
 
-std::unordered_map<std::string, double> makeSimpleCostMap(double linkLength) {
-    std::unordered_map<std::string, double> costs;
-    costs["length"] = linkLength;
+mapcosts makeSimpleCostMap(double linkLength) {
+    mapcosts costs;
+    costs["CAR"] = {{"length", linkLength}};
     return costs;
 }
 

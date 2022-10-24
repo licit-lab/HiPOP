@@ -13,17 +13,18 @@
 typedef std::set<std::string> setstring;
 typedef std::vector<std::string> vecstring;
 typedef std::unordered_map<std::string, std::set<std::string> > mapsets;
+typedef std::unordered_map<std::string, std::unordered_map<std::string, double> > mapcosts;
 
 class Link {
 public:
     std::string mid;
     std::string mupstream;
     std::string mdownstream;
-    std::unordered_map<std::string, double> mcosts;
+    mapcosts mcosts;
     std::string mlabel;
     double mlength;
 
-    Link(std::string _id, std::string _up, std::string _down, double length, std::unordered_map<std::string, double> _costs, std::string label = "") {
+    Link(std::string _id, std::string _up, std::string _down, double length, mapcosts _costs, std::string label = "") {
         mid = _id.c_str();
         mlabel = label.c_str();
         mupstream = _up.c_str();
@@ -46,9 +47,11 @@ public:
 
     }
 
-    void updateCosts(std::unordered_map<std::string, double> costs) {
-        for(const auto &keyVal: costs) {
-            mcosts[keyVal.first] = keyVal.second;
+    void updateCosts(mapcosts costs) {
+        for(const auto &keyMapCost: costs) {
+            for(const auto &keyVal: keyMapCost.second) {
+                mcosts[keyMapCost.first][keyVal.first] = keyVal.second;
+            }
         }
     }
 };
@@ -128,9 +131,9 @@ public:
     std::unordered_map<std::string, Link* > mlinks;
     void AddNode(std::string _id, double x, double y, std::string label = "", mapsets excludeMovements = {});
     void AddNode(Node *n);
-    void AddLink(std::string _id, std::string _up, std::string _down, double length, std::unordered_map<std::string, double> _costs, std::string label = "");
+    void AddLink(std::string _id, std::string _up, std::string _down, double length, mapcosts _costs, std::string label = "");
     void AddLink(Link* l);
-    void UpdateLinkCosts(std::string lid, std::unordered_map<std::string, double> _costs);
+    void UpdateLinkCosts(std::string lid, mapcosts _costs);
 
     void ShowNodes();
     void ShowLinks();

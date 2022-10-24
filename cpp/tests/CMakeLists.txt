@@ -1,6 +1,7 @@
 # create the testing file and list of tests
 create_test_sourcelist (Tests
   CommonCxxTests.cpp
+  testCopyGraph.cpp
   testGraph.cpp
   testGraphMerge.cpp
   testDijkstra1.cpp

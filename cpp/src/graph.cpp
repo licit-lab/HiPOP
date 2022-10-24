@@ -51,14 +51,11 @@ void OrientedGraph::AddNode(Node* n) {
 };
 
 
-void OrientedGraph::AddLink(std::string _id, std::string _up, std::string _down, double length, std::unordered_map<std::string, double> _costs, std::string label) {
+void OrientedGraph::AddLink(std::string _id, std::string _up, std::string _down, double length, mapcosts _costs, std::string label) {
     Link *new_link = new Link(_id, _up, _down, length, _costs, label);
-    // mnodes[_up]->madj[_down] = new_link;
     mnodes[_up]->madj.emplace(_down, new_link);
-    // mnodes[_down]->mradj[_up] = new_link;
     mnodes[_down]->mradj.emplace(_up, new_link);
 
-    // mlinks[_id] = new_link;
     mlinks.emplace(_id, new_link);
 };
 
@@ -71,7 +68,7 @@ void OrientedGraph::AddLink(Link *l) {
 };
 
 
-void OrientedGraph::UpdateLinkCosts(std::string lid, std::unordered_map<std::string, double> _costs) {
+void OrientedGraph::UpdateLinkCosts(std::string lid, mapcosts _costs) {
     mlinks[lid]->updateCosts(_costs);
 }
 
@@ -136,11 +133,16 @@ OrientedGraph* mergeOrientedGraph(std::vector<const OrientedGraph*> allGraphs){
         }
 
         for(const auto &keyVal: G->mlinks) {
-            std::unordered_map<std::string, double> costs;
+            mapcosts costs;
 
-            for(const auto &keyVal: keyVal.second->mcosts) {
-                costs[keyVal.first] = keyVal.second;
+            // for(const auto &keyVal: keyVal.second->mcosts) {
+            //     costs[keyVal.first] = keyVal.second;
+            // }
+            for(const auto &keyMapCost: keyVal.second->mcosts) {
+                for(const auto &keyVal: keyMapCost.second) {
+                    costs[keyMapCost.first][keyVal.first] = keyVal.second;
             }
+        }
 
             newGraph->AddLink(keyVal.first, 
                     keyVal.second->mupstream,
