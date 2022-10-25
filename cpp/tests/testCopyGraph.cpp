@@ -5,7 +5,7 @@
 
 int testCopyGraph(int argc, char *argv[])
 {   
-    OrientedGraph G;
+    hipop::OrientedGraph G;
 
     G.AddNode("0", 0, 0);
     G.AddNode("1", 1, 0);
@@ -17,7 +17,7 @@ int testCopyGraph(int argc, char *argv[])
     G.AddLink("0_3", "0", "3", 1, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
     G.AddLink("3_2", "3", "2", 1, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
 
-    OrientedGraph *copyG = copyGraph(G);
+    hipop::OrientedGraph *copyG = hipop::copyGraph(G);
 
     G.mlinks["0_1"]->mcosts["PersonalVehicle"]["time"] = 42;
 

@@ -10,7 +10,7 @@ namespace hipop_wrappers {
 void shortest_path(py::module_ &m) {
     m.def(
         "dijkstra", 
-        &dijkstra, 
+        &hipop::dijkstra, 
         py::arg("graph"), 
         py::arg("origin"), 
         py::arg("destination"), 
@@ -19,7 +19,7 @@ void shortest_path(py::module_ &m) {
         py::arg("available_labels") = setstring());
     m.def(
         "parallel_dijkstra", 
-        &parallelDijkstra, 
+        &hipop::parallelDijkstra, 
         py::arg("graph"), 
         py::arg("origins"), 
         py::arg("destinations"),
@@ -27,11 +27,11 @@ void shortest_path(py::module_ &m) {
         py::arg("cost"), 
         py::arg("thread_number"), 
         py::arg("available_labels") = std::vector<setstring>());
-    m.def("k_shortest_path", &KShortestPath);
-    m.def("parallel_k_shortest_path", &parallelKShortestPath);
-    m.def("yen_k_shortest_path", &YenKShortestPath);
-    m.def("astar_euclidian_dist", &aStarEuclidianDist);
-    m.def("compute_path_length", &computePathLength);
+    m.def("k_shortest_path", &hipop::KShortestPath);
+    m.def("parallel_k_shortest_path", &hipop::parallelKShortestPath);
+    m.def("yen_k_shortest_path", &hipop::YenKShortestPath);
+    m.def("astar_euclidian_dist", &hipop::aStarEuclidianDist);
+    m.def("compute_path_length", &hipop::computePathLength);
 }
 
 }

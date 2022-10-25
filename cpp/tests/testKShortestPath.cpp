@@ -7,7 +7,7 @@
 
 int testKShortestPath(int argc, char *argv[])
 {
-    OrientedGraph G;
+    hipop::OrientedGraph G;
 
     G.AddNode("0", 0, 0);
     G.AddNode("1", 1, 1);
@@ -23,7 +23,7 @@ int testKShortestPath(int argc, char *argv[])
     G.AddLink("0_4", "0", "4", 11, {{"PersonalVehicle", {{"time", 14}}}}, "CAR");
     G.AddLink("4_3", "4", "3", 11, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
 
-    auto paths = KShortestPath(G, "0", "3", "time", {}, {{"CAR", "PersonalVehicle"}}, 0, 10, 4);
+    auto paths = hipop::KShortestPath(G, "0", "3", "time", {}, {{"CAR", "PersonalVehicle"}}, 0, 10, 4);
     assertTrue(paths.size()==3, "Did not found 3 paths");
     
 

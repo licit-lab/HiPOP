@@ -7,7 +7,7 @@
 
 int testparallelKShortestPath(int argc, char *argv[])
 {
-    OrientedGraph G;
+    hipop::OrientedGraph G;
 
     G.AddNode("0", 0, 0);
     G.AddNode("1", 1, 1);
@@ -34,7 +34,7 @@ int testparallelKShortestPath(int argc, char *argv[])
         {{"CAR", "PersonalVehicle"}}
     };
     
-    auto paths = parallelKShortestPath(G, origins, destinations, "time", vecMapLabelCosts, {}, 0, 10, 4, 4);
+    auto paths = hipop::parallelKShortestPath(G, origins, destinations, "time", vecMapLabelCosts, {}, 0, 10, 4, 4);
 
 
     return 0;

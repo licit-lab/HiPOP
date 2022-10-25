@@ -7,7 +7,7 @@
 
 int testYenKShortestPath(int argc, char *argv[])
 {
-    OrientedGraph G;
+    hipop::OrientedGraph G;
 
     G.AddNode("C", 0, 0);
     G.AddNode("D", 1, 0);
@@ -27,7 +27,7 @@ int testYenKShortestPath(int argc, char *argv[])
     G.AddLink("G_H", "G", "H", 1, {{"PersonalVehicle", {{"time", 2}}}}, "CAR");
 
 
-    auto paths = YenKShortestPath(G, "C", "H", "time", {}, {{"CAR", "PersonalVehicle"}}, 3);
+    auto paths = hipop::YenKShortestPath(G, "C", "H", "time", {}, {{"CAR", "PersonalVehicle"}}, 3);
     assertTrue(paths.size()==3, "Did not found 3 paths");
     
 

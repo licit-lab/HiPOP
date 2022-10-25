@@ -6,6 +6,6 @@
 
 int testManhattan(int argc, char *argv[])
 {
-    OrientedGraph *G = makeManhattan(100, 10);
+    hipop::OrientedGraph *G = hipop::makeManhattan(100, 10);
     return 0;
 }
