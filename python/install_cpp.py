@@ -11,7 +11,7 @@ def build_hipop_cpp(prefix):
     temp_dir = tempfile.TemporaryDirectory()
     os.chdir(temp_dir.name)
     try:
-        subprocess.check_call(fr"cmake -S {src_dir} -DCMAKE_PREFIX_PATH={prefix} -DCMAKE_INSTALL_PREFIX={prefix} -DCMAKE_BUILD_TYPE=Release", shell=True)
+        subprocess.check_call(fr"cmake -S '{src_dir}' -DCMAKE_PREFIX_PATH={prefix} -DCMAKE_INSTALL_PREFIX={prefix} -DCMAKE_BUILD_TYPE=Release", shell=True)
         subprocess.check_call(r"cmake --build . --target install --config Release", shell=True)
     except:
         print("Build failed ..")

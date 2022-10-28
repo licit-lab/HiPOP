@@ -3,6 +3,9 @@
 
 #pragma once
 
+namespace hipop
+{
+    OrientedGraph* makeManhattan(int n, double linkLength);    
+} // namespace hipop
 
 
-OrientedGraph* makeManhattan(int n, double linkLength);
