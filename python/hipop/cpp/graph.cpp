@@ -36,8 +36,8 @@ void graph(py::module_ &m) {
           .def(py::init<>())
           .def_readwrite("nodes", &hipop::OrientedGraph::mnodes)
           .def_readwrite("links", &hipop::OrientedGraph::mlinks)
-          .def("add_node", py::overload_cast<std::string, double, double, std::string, mapsets>(&hipop::OrientedGraph::AddNode),
-               py::arg("id"), py::arg("x"), py::arg("y"), py::arg("label"), py::arg("exclude_movements") = mapsets())
+          .def("add_node", py::overload_cast<std::string, double, double, std::string, mapsets>(&hipop::OrientedGraph::AddNode), py::arg("id"), py::arg("x"), py::arg("y"), py::arg("label"), py::arg("exclude_movements") = mapsets())
+          .def("add_node", py::overload_cast<hipop::Node*>(&hipop::OrientedGraph::AddNode), py::arg("node"))
           .def("add_link", py::overload_cast<std::string, std::string, std::string, double, mapcosts, std::string>(&hipop::OrientedGraph::AddLink),
                py::arg("id"), py::arg("up"), py::arg("down"), py::arg("length"), py::arg("costs"), py::arg("label") = "_def")
           .def("get_link", &hipop::OrientedGraph::getLink)

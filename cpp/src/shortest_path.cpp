@@ -441,7 +441,7 @@ namespace hipop
     }
 
     /**
-     * @brief Batch computation of K shortest paths using openmp
+     * @brief Batch computation of K shortest paths using openmp, each thread has its own deep copy of the OrientedGraph to ensure that the increase of the cost do not collapse with the other threads
      * 
      * @param G The OrientedGraph on which we compute the paths
      * @param origins The origins
@@ -489,16 +489,15 @@ namespace hipop
                     res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, accessibleLabels[i], vecMapLabelCosts[i], minDist, maxDist, kPath);
                 }
             }
-
+            
+            // Not sure if the omp critical is necessary
             #pragma omp critical
             {
                 delete privateG;
             }
 
         }
-
-        // std::cout<<"End KSP"<<std::endl;
-
+        
         return res;
     }
 
