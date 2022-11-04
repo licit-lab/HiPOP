@@ -1,7 +1,5 @@
 name: CI
 
-on:[push]
-
 jobs:
   test:
     runs-on:${{ matrix.os }}
