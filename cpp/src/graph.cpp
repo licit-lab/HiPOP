@@ -119,6 +119,17 @@ namespace hipop
         }
     }
 
+ /**
+     * @brief Get the length of a link
+     *
+     * @param _up the upstream node of the link
+     * @param _down the downstream node of the link
+     * @return double the length of the link
+     */
+    double OrientedGraph::getLength(std::string _up, std::string _down)
+    {
+        return mnodes[_up]->madj[_down]->mlength;
+    }
 
     /**
      * @brief Make a deep copy of an OrientedGraph
@@ -197,7 +208,6 @@ namespace hipop
 
         return newGraph;
     }
-        
 } // namespace hipop
 
 

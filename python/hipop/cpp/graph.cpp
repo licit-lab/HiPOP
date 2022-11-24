@@ -41,7 +41,8 @@ void graph(py::module_ &m) {
           .def("add_link", py::overload_cast<std::string, std::string, std::string, double, mapcosts, std::string>(&hipop::OrientedGraph::AddLink),
                py::arg("id"), py::arg("up"), py::arg("down"), py::arg("length"), py::arg("costs"), py::arg("label") = "_def")
           .def("get_link", &hipop::OrientedGraph::getLink)
-          .def("update_link_costs", &hipop::OrientedGraph::UpdateLinkCosts);
+          .def("update_link_costs", &hipop::OrientedGraph::UpdateLinkCosts)
+          .def("get_length", &hipop::OrientedGraph::getLength);
 
     m.def("generate_manhattan", &hipop::makeManhattan);
 
