@@ -17,6 +17,8 @@ int testCopyGraph(int argc, char *argv[])
     G.AddLink("0_3", "0", "3", 1, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
     G.AddLink("3_2", "3", "2", 1, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
 
+    G.mnodes["1"]->mcosts["0_1"]["1_2"]["time"] = 6;
+
     hipop::OrientedGraph *copyG = hipop::copyGraph(G);
 
     G.mlinks["0_1"]->mcosts["PersonalVehicle"]["time"] = 42;
@@ -28,6 +30,10 @@ int testCopyGraph(int argc, char *argv[])
     assertTrue(
         G.mlinks["0_3"]->mcosts["PersonalVehicle"]["time"] == copyG->mlinks["0_3"]->mcosts["PersonalVehicle"]["time"],
         "Cost of original and copy should be the same");
+
+    assertTrue(
+        G.mnodes["1"]->mcosts["0_1"]["1_2"]["time"] == copyG->mnodes["1"]->mcosts["0_1"]["1_2"]["time"],
+        "Node cost of original and copy should be the same");
 
     assertTrue(
         G.mlinks["0_3"] != copyG->mlinks["0_3"],

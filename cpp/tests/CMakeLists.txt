@@ -9,6 +9,7 @@ create_test_sourcelist (Tests
   testKShortestPath.cpp
   testYenKShortestPath.cpp
   testManhattan.cpp
+  testNodeCosts.cpp
   testparallelKShortestPath.cpp
 )
 

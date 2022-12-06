@@ -14,9 +14,29 @@
 #include <iostream>
 #include <cmath>
 
-typedef std::pair<double, std::string> QueueItem;
+typedef std::pair<double, std::pair<std::string, std::string> > QueueItem;
 typedef std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<QueueItem>> PriorityQueue;
 
+
+// To provide the std::pair<std::string, std::string> a hash functor so it can be a key of our unordered_maps
+template<typename T>
+void
+hash_combine(std::size_t &seed, T const &key) {
+    std::hash<T> hasher;
+    seed ^= hasher(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+namespace std {
+  template<typename T1, typename T2>
+  struct hash<std::pair<T1, T2>> {
+    std::size_t operator()(std::pair<T1, T2> const &p) const {
+      std::size_t seed(0);
+      ::hash_combine(seed, p.first);
+      ::hash_combine(seed, p.second);
+      return seed;
+    }
+  };
+}
 
 namespace hipop
 {
@@ -43,61 +63,61 @@ namespace hipop
 
         PriorityQueue pq;
 
-        std::unordered_map<std::string, double> dist;
-        std::unordered_map<std::string, std::string> prev;
+        std::unordered_map<std::pair<std::string, std::string>, double> dist;
+        std::unordered_map<std::pair<std::string, std::string>, std::pair<std::string, std::string>> prev;
         prev.reserve(G.mnodes.size());
         dist.reserve(G.mnodes.size());
         double inf = std::numeric_limits<double>::infinity();
-        for (const auto keyVal : G.mnodes)
-        {
-            dist[keyVal.first] = inf;
-        }
-        pq.push(make_pair(0, origin));
-        dist[origin] = 0;
+        pq.push(make_pair(0, make_pair(origin, "")));
+        dist[make_pair(origin, "")] = 0;
 
         path.second = inf;
-        prev[origin] = "";
+        prev[make_pair(origin, "")] = std::make_pair("", "");
 
         if (origin==destination) {
-        path.second = 0;
-        return path;
+            path.second = 0;
+            return path;
         }
 
         while (!pq.empty())
         {
             QueueItem current = pq.top();
             pq.pop();
-            std::string u = current.second;
+            const std::pair<std::string, std::string> & u = current.second;
 
-            if (u == destination)
+            if (u.first == destination)
             {
-                std::string v = prev[u];
-                path.first.push_back(u);
+                std::pair<std::string, std::string> v = prev[u];
+                path.first.push_back(u.first);
 
-                while (v != origin)
+                while (v.first != origin)
                 {
-                    path.first.push_back(v);
+                    path.first.push_back(v.first);
                     v = prev[v];
                 }
 
-                path.first.push_back(v);
+                path.first.push_back(v.first);
                 std::reverse(path.first.begin(), path.first.end());
-                path.second = dist[destination];
+                path.second = dist[u];
                 return path;
             }
 
-            for (const auto link : G.mnodes.at(u)->getExits(prev[u]))
+            Node * uNode = G.mnodes.at(u.first);
+            for (const auto link : uNode->getExits(prev[u].first))
             {
                 if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
                 {
                     std::string neighbor = link->mdownstream;
-                    double new_dist = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+                    double new_dist = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost] + uNode->getCost(u.second, link->mid, cost);
 
-                    if (dist[neighbor] > new_dist)
+                    auto v = make_pair(neighbor, link->mid);
+                    auto iterDist = dist.find(v);
+
+                    if (iterDist == dist.end() || iterDist->second > new_dist)
                     {
-                        dist[neighbor] = new_dist;
-                        pq.push(QueueItem(new_dist, neighbor));
-                        prev[neighbor] = u;
+                        dist[v] = new_dist;
+                        pq.push(QueueItem(new_dist, v));
+                        prev[v] = u;
                     }
                 }
             }
@@ -216,11 +236,16 @@ namespace hipop
     double computePathCost(OrientedGraph &G, const std::vector<std::string> &path, std::string cost, const std::unordered_map<std::string, std::string> mapLabelCost)
     {
         double c = 0;
-
+        Link * prevLink = nullptr;
         for (size_t i = 0; i < path.size() - 1; i++)
         {
-            Link *link = G.mnodes[path[i]]->madj[path[i + 1]];
+            Node * pNode = G.mnodes[path[i]];
+            Link *link = pNode->madj[path[i + 1]];
             c += link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+            if (prevLink) {
+                c += pNode->getCost(prevLink->mid, link->mid, cost);
+            }
+            prevLink = link;
         }
 
         return c;
@@ -526,60 +551,60 @@ namespace hipop
 
         PriorityQueue pq;
 
-        std::unordered_map<std::string, double> dist;
-        std::unordered_map<std::string, std::string> prev;
+        std::unordered_map<std::pair<std::string, std::string>, double> dist;
+        std::unordered_map<std::pair<std::string, std::string>, std::pair<std::string, std::string>> prev;
         prev.reserve(G.mnodes.size());
         dist.reserve(G.mnodes.size());
         double inf = std::numeric_limits<double>::infinity();
-        for (const auto keyVal : G.mnodes)
-        {
-            dist[keyVal.first] = inf;
-        }
-        pq.push(make_pair(0, origin));
-        dist[origin] = 0;
+        pq.push(make_pair(0, make_pair(origin, "")));
+        dist[make_pair(origin, "")] = 0;
 
         path.second = inf;
-        prev[origin] = "";
+        prev[make_pair(origin, "")] = std::make_pair("", "");;
 
         if (origin == destination){
-        path.second = 0;
-        return path;
+            path.second = 0;
+            return path;
         }
 
         while (!pq.empty())
         {
-            std::string u = pq.top().second;
+            std::pair<std::string, std::string> u = pq.top().second;
             pq.pop();
 
-            if (u == destination)
+            if (u.first == destination)
             {
-                std::string v = prev[u];
-                path.first.push_back(u);
+                std::pair<std::string, std::string> v = prev[u];
+                path.first.push_back(u.first);
 
-                while (v != origin)
+                while (v.first != origin)
                 {
-                    path.first.push_back(v);
+                    path.first.push_back(v.first);
                     v = prev[v];
                 }
 
-                path.first.push_back(v);
+                path.first.push_back(v.first);
                 std::reverse(path.first.begin(), path.first.end());
-                path.second = dist[destination];
+                path.second = dist[u];
                 return path;
             }
 
-            for (const auto link : G.mnodes.at(u)->getExits(prev[u]))
+            Node * uNode = G.mnodes.at(u.first);
+            for (const auto link : uNode->getExits(prev[u].first))
             {
                 if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
                 {
                     std::string neighbor = link->mdownstream;
-                    double tentative_score = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+                    double tentative_score = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost] + uNode->getCost(u.second, link->mid, cost);
 
-                    if (tentative_score < dist[neighbor])
+                    auto v = make_pair(neighbor, link->mid);
+                    auto iterDist = dist.find(v);
+
+                    if (iterDist == dist.end() || tentative_score < iterDist->second)
                     {
-                        dist[neighbor] = tentative_score;
-                        pq.push(QueueItem(tentative_score + heuristic(G.mnodes.at(u), G.mnodes.at(destination)), neighbor));
-                        prev[neighbor] = u;
+                        dist[v] = tentative_score;
+                        pq.push(QueueItem(tentative_score + heuristic(uNode, G.mnodes.at(destination)), v));
+                        prev[v] = u;
                     }
                 }
             }

@@ -15,6 +15,9 @@ typedef std::vector<std::string> vecstring;
 typedef std::unordered_map<std::string, std::set<std::string> > mapsets;
 typedef std::unordered_map<std::string, std::unordered_map<std::string, double> > mapcosts;
 
+// first key : uplink, second key : downlink, third key : cost label, value : cost
+typedef std::unordered_map<std::string, std::unordered_map<std::string, std::unordered_map<std::string, double> > > mapnodecosts;
+
 
 namespace hipop
 {
@@ -66,15 +69,17 @@ namespace hipop
         std::array<double, 2> mposition;
         std::unordered_map<std::string, Link* > madj;
         std::unordered_map<std::string, Link* > mradj;
+        mapnodecosts mcosts;
         std::string mlabel;
 
         mapsets mexclude_movements;
 
-        Node(std::string _id, double x, double y, std::string label = "", mapsets exclude_movements = {}) {
+        Node(std::string _id, double x, double y, std::string label = "", mapsets exclude_movements = {}, mapnodecosts costs = {}) {
             mid = _id.c_str();
             mposition[0] = x;
             mposition[1] = y;
             mexclude_movements = exclude_movements;
+            mcosts = costs;
             mlabel = label.c_str();
         }
 
@@ -101,7 +106,19 @@ namespace hipop
 
                 mexclude_movements[keyVal.first] = copy;
             }
-        } 
+
+            mcosts = other.mcosts;
+        }
+
+        void updateCosts(mapnodecosts costs) {
+            for(const auto &upLink: costs) {
+                for(const auto &downLink: upLink.second) {
+                    for(const auto &costLabel: downLink.second) {
+                        mcosts[upLink.first][downLink.first][costLabel.first] = costLabel.second;
+                    }
+                }
+            }
+        }
 
         std::vector<Link*> getExits(std::string predecessor = "_default") {
             std::vector<Link*> res;
@@ -125,6 +142,19 @@ namespace hipop
             return res;
         }
 
+        double getCost(const std::string & upLink, const std::string & downLink, const std::string & cost) {
+            auto iterUp = mcosts.find(upLink);
+            if (iterUp != mcosts.end()) {
+                auto iterDown = iterUp->second.find(downLink);
+                if (iterDown != iterUp->second.end()) {
+                    auto iterCost = iterDown->second.find(cost);
+                    if (iterCost != iterDown->second.end()) {
+                        return iterCost->second;
+                    }
+                }
+            }
+            return 0;
+        }
     };
 
 
@@ -132,7 +162,7 @@ namespace hipop
     public:
         std::unordered_map<std::string, Node* > mnodes;
         std::unordered_map<std::string, Link* > mlinks;
-        void AddNode(std::string _id, double x, double y, std::string label = "", mapsets excludeMovements = {});
+        void AddNode(std::string _id, double x, double y, std::string label = "", mapsets excludeMovements = {}, mapnodecosts costs = {});
         void AddNode(Node *n);
         void AddLink(std::string _id, std::string _up, std::string _down, double length, mapcosts _costs, std::string label = "");
         void AddLink(Link* l);

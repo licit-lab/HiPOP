@@ -43,8 +43,8 @@ namespace hipop
      * @param label The optional label associated to the Node
      * @param excludeMovements The map of exclude movements with adjacent Nodes
      */
-    void OrientedGraph::AddNode(std::string _id, double x, double y, std::string label, mapsets excludeMovements) {
-        Node *new_node = new Node(_id, x, y, label, excludeMovements);
+    void OrientedGraph::AddNode(std::string _id, double x, double y, std::string label, mapsets excludeMovements, mapnodecosts costs) {
+        Node *new_node = new Node(_id, x, y, label, excludeMovements, costs);
         mnodes[_id] = new_node;
     };
 
@@ -147,7 +147,8 @@ namespace hipop
                             keyVal.second->mposition[0],
                             keyVal.second->mposition[1],
                             keyVal.second->mlabel,
-                            keyVal.second->mexclude_movements);
+                            keyVal.second->mexclude_movements,
+                            keyVal.second->mcosts);
         }
 
 
@@ -184,7 +185,7 @@ namespace hipop
                     }
                     excludeMovements[keyVal.first] = copy;
                 }
-                newGraph->AddNode(keyValNodes.first, keyValNodes.second->mposition[0], keyValNodes.second->mposition[1], keyValNodes.second->mlabel, excludeMovements);
+                newGraph->AddNode(keyValNodes.first, keyValNodes.second->mposition[0], keyValNodes.second->mposition[1], keyValNodes.second->mlabel, excludeMovements, keyValNodes.second->mcosts);
             }
 
             for(const auto &keyVal: G->mlinks) {
