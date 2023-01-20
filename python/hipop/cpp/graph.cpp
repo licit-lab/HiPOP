@@ -47,6 +47,8 @@ void graph(py::module_ &m) {
     m.def("generate_manhattan", &hipop::makeManhattan);
 
     m.def("merge_oriented_graph", &hipop::mergeOrientedGraph);
+
+    m.def("copy_graph", &copyGraph);
 }
 
 }

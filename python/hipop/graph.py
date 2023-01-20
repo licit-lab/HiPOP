@@ -1,6 +1,6 @@
 from typing import Dict
 
-from hipop.cpp.graph import Link, Node, OrientedGraph, generate_manhattan, merge_oriented_graph
+from hipop.cpp.graph import Link, Node, OrientedGraph, generate_manhattan, merge_oriented_graph, copy_graph
 
 
 def node_to_dict(node: Node):
