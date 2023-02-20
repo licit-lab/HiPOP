@@ -48,7 +48,7 @@ void graph(py::module_ &m) {
 
     m.def("merge_oriented_graph", &hipop::mergeOrientedGraph);
 
-    m.def("copy_graph", &copyGraph);
+    m.def("copy_graph", &hipop::copyGraph);
 }
 
 }
