@@ -32,6 +32,7 @@ void shortest_path(py::module_ &m) {
     m.def("yen_k_shortest_path", &hipop::YenKShortestPath);
     m.def("astar_euclidian_dist", &hipop::aStarEuclidianDist);
     m.def("compute_path_length", &hipop::computePathLength);
+    m.def("compute_path_cost", &hipop::computePathCost);
 }
 
 }

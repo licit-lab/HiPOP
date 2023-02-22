@@ -14,6 +14,8 @@ namespace hipop
 {
     double computePathLength(OrientedGraph &G, const std::vector<std::string> &path);
 
+    double computePathCost(OrientedGraph &G, const std::vector<std::string> &path, std::string cost, const std::unordered_map<std::string, std::string> mapLabelCost);
+
     pathCost dijkstra(
         const OrientedGraph &G, 
         const std::string &origin, 
