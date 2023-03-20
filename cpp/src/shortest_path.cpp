@@ -205,6 +205,56 @@ namespace hipop
     }
 
     /**
+     * @brief Batch computation of paths costs
+     *
+     * @param G The OrientedGraph on which the path is computed
+     * @param paths The paths grouped in batches
+     * @param cost The cost to consider
+     * @param mapLabelCost The type of cost map to choose on each label
+     * @param threadNumber Number of threads to use
+     * @return std::vector<double> The total costs of the paths
+     */
+    std::vector<std::vector<double>> computePathsCosts(
+        OrientedGraph &G,
+        const std::vector<std::vector<std::vector<std::string>>> &paths,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> mapLabelCost,
+        int threadNumber)
+    {
+        omp_set_num_threads(threadNumber);
+        int nbBatches = paths.size();
+
+        std::vector<std::vector<double>> res(nbBatches);
+        OrientedGraph *privateG;
+
+        #pragma omp parallel shared(res, G, paths, cost, mapLabelCost) private(privateG)
+        {
+            privateG = copyGraph(G);
+
+            #pragma omp for
+            for (int i = 0; i < nbBatches; i++)
+            {
+                int nbPaths = paths[i].size();
+                std::vector<double> res_(nbPaths);
+                for (int j = 0; j < nbPaths; j++)
+                {
+                  res_[j] = computePathCost(*privateG, paths[i][j], cost, mapLabelCost);
+                }
+                res[i] = res_;
+            }
+
+            // Not sure if the omp critical is necessary
+            #pragma omp critical
+            {
+                delete privateG;
+            }
+
+        }
+
+        return res;
+    }
+
+    /**
      * @brief Compute the total cost of a path
      * 
      * @param G The OrientedGraph on which the path is computed
@@ -217,13 +267,19 @@ namespace hipop
     {
         double c = 0;
 
-        for (size_t i = 0; i < path.size() - 1; i++)
+        if (path.size() == 0)
         {
-            Link *link = G.mnodes[path[i]]->madj[path[i + 1]];
-            c += link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+          return c;
         }
-
-        return c;
+        else
+        {
+          for (size_t i = 0; i < path.size() - 1; i++)
+          {
+              Link *link = G.mnodes[path[i]]->madj[path[i + 1]];
+              c += link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+          }
+          return c;
+        }
     }
 
     /**
