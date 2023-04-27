@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.0)
+
+project(HipopExample)
+
+include_directories("/Users/manon/Documents/mnms/HiPOP/cpp/include")
+link_directories("/Users/manon/Documents/mnms/HiPOP/cpp/build/src")
+
+set( SRCS ParallelKShortestPath.cpp)
+
+add_executable(HipopExample ${SRCS})
+
+set_property(TARGET HipopExample PROPERTY CXX_STANDARD 17)
+
+target_link_libraries(HipopExample hipoplib)

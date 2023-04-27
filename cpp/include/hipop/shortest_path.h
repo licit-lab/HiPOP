@@ -95,4 +95,20 @@ namespace hipop
         std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
         std::vector<setstring> vecAvailableLabels = {});
 
+    std::unordered_map<std::string, pathCost> multiDestDijkstra(
+        const OrientedGraph &G, 
+        const std::string &origin, 
+        const std::string &cost, 
+        const std::unordered_map<std::string, std::string> &mapLabelCost, 
+        setstring accessibleLabels = {});
+
+    std::unordered_map<std::string, std::unordered_map<std::string, pathCost>> parallelMultiDestDijkstra(
+        const OrientedGraph &G,
+        const std::vector<std::string> &origins, 
+        const std::string &cost, 
+        const std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        int threadNumber,
+        const std::vector<setstring> accessibleLabels = {});
+
+
 } // namespace hipop

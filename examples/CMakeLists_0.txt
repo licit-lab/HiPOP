@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.0)
+project(mainTest)
+include_directories("/Users/manon/Documents/mnms/HiPOP/cpp/include")
+link_directories("/Users/manon/Documents/mnms/HiPOP/cpp/build/src")
+# Crée des variables avec les fichiers à compiler
+set(SRCS
+    main.cpp
+    )
+    
+# On indique que l'on veut un exécutable "hello" compilé à partir des fichiers décrits par les variables SRCS et HEADERS
+add_executable(mainTest ${SRCS})
+set_property(TARGET mainTest PROPERTY CXX_STANDARD 17)
+target_link_libraries(
+  mainTest hipoplib
+)
