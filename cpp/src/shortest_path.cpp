@@ -888,7 +888,7 @@ namespace hipop
         std::unordered_map<std::string, pathCost> res(nbPath-1);
 
         PriorityQueue pq;
-
+        
         std::unordered_map<std::string, double> dist;
         std::unordered_map<std::string, std::string> prev;
         prev.reserve(G.mnodes.size());
@@ -902,7 +902,6 @@ namespace hipop
         dist[origin] = 0;
 
         prev[origin] = "";
-
         // Explore full graph
         while (!pq.empty())
         {
@@ -926,6 +925,11 @@ namespace hipop
                 }
             }
         }
+        //for (const auto keyVal: prev){
+        //    std::cout << keyVal.first << ": " << keyVal.second <<"\n";
+        //}
+        // Compute all paths
+        std::unordered_map<std::string, std::vector<std::string>> paths = restorePaths(origin, prev);
         // Extract path results
         int i = 0;
         for (const auto u : G.mnodes) //for path in paths and lists 
@@ -935,25 +939,76 @@ namespace hipop
                 // initialize current path
                 pathCost path;
                 // initialise path cost
-                path.second = inf;
-
-                std::string v = prev[u.first];
-                path.first.push_back(u.first);
-
-                while (v != origin)
-                {
-                    path.first.push_back(v);
-                    v = prev[v];
-                }
-
-                path.first.push_back(v);
-                std::reverse(path.first.begin(), path.first.end());
                 path.second = dist[u.first];
+                // get path
+                path.first = paths[u.first];
                 res[u.first] = path;
                 i++;
             }
         }
         return res;
+    }
+
+    /**
+     * @brief Based on the exploration of the graph within multiDestDijkstra, use the predecessor array prev to reconstruct efficiently all shortest paths.
+     * 
+     * @param rootNode The root node or origin of the multiDestDijkstra computation
+     * @param prev The predecessor array
+     * @return std::unordered_map<std::string, std::vector<std::string>> The map of paths to each destination
+     */
+    std::unordered_map<std::string, std::vector<std::string>> restorePaths(
+        const std::string &rootNode,
+        std::unordered_map<std::string, std::string> &prev
+    ){
+        int nbPath = prev.size();
+        std::unordered_map<std::string, std::vector<std::string>> paths(nbPath-1);
+        paths.reserve(nbPath-1);
+        for(const auto &currentNode: prev) {
+            std::string leave = currentNode.first;
+            if (leave!=rootNode){
+                getRootPath(leave, rootNode, prev, paths);
+            }
+        }
+        return paths;
+    }
+
+    /**
+     * @brief Recursive function to retrieve the shortest path between the root node and the currently considered node
+     * 
+     * @param currentNode The current destination considered
+     * @param rootNode The root node or origin of the multiDestDijkstra computation
+     * @param prev The predecessor array
+     * @param paths The map of paths to each destination
+     * @return std::vector<std::string> the shortest path between rootNode and currentNode
+     */
+    std::vector<std::string> getRootPath(
+        const std::string &currentNode, 
+        const std::string &rootNode,
+        std::unordered_map<std::string, std::string> &prev,
+        std::unordered_map<std::string, std::vector<std::string>> &paths)
+    {
+        std::vector<std::string> pathCurrent;
+        pathCurrent.reserve(prev.size());
+        if(paths.find(currentNode) != paths.end()){
+            // If path is known already
+            pathCurrent = paths[currentNode];
+        } else {
+            //Get previous node 
+            std::string previousNode = prev[currentNode];
+            if (previousNode == rootNode){
+                //Initialize path
+                pathCurrent.push_back(rootNode);
+            } else {
+                std::vector<std::string> pathPrevious = getRootPath(previousNode, rootNode, prev, paths);
+                //Create current path from pathPrevious
+                pathCurrent = pathPrevious;
+            }
+            //Append current node at the end
+            pathCurrent.push_back(currentNode);
+            //Save path
+            paths[currentNode] = pathCurrent;
+        }
+        return pathCurrent;
     }
 
     /**
@@ -972,7 +1027,7 @@ namespace hipop
      * @return std::vector<std::vector<pathCost>> 
      */
     std::unordered_map<std::string, std::unordered_map<std::string, pathCost>> parallelMultiDestDijkstra(
-        OrientedGraph &G, 
+        const OrientedGraph &G, 
         const std::vector<std::string> &origins, 
         const std::string &cost,
         const std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
@@ -983,12 +1038,15 @@ namespace hipop
         int nbOD = origins.size();
 
         std::unordered_map<std::string, std::unordered_map<std::string, pathCost>> res(nbOD);
+        res.reserve(nbOD);
+
         OrientedGraph *privateG;
 
         #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins) private(privateG)
         {
             privateG = copyGraph(G);
 
+            /*
             #pragma omp for
             for (int i = 0; i < nbOD; i++)
             {
@@ -1001,7 +1059,33 @@ namespace hipop
                     res[origins[i]] = multiDestDijkstra(*privateG, origins[i], cost, vecMapLabelCosts[i], accessibleLabels[i]);
                 }
             }
+            */
+
+
             
+            int q = 50;
+            int max_int = nbOD/q;
+            #pragma omp for
+            //for (int i = 0; i < nbOD; i++)
+            for (int k = 0; k<=max_int; k+=1)
+            {
+                for (int i=k*q; i<(k+1)*q; i++){
+                    if (i<nbOD){
+                        if (accessibleLabels.empty())
+                        {
+                            res[origins[i]] = multiDestDijkstra(*privateG, origins[i], cost, vecMapLabelCosts[i], {});
+                        }
+                        else
+                        {
+                            res[origins[i]] = multiDestDijkstra(*privateG, origins[i], cost, vecMapLabelCosts[i], accessibleLabels[i]);
+                        }
+                    }
+                }
+            }    
+        
+
+
+
             // Not sure if the omp critical is necessary
             #pragma omp critical
             {

@@ -64,8 +64,8 @@ int main()
         {{"CAR", "PersonalVehicle"}}
     };
 
-    //auto res = hipop::multiDestDijkstra(G, "0", "time", {{"CAR", "PersonalVehicle"}});
-    auto res = hipop::parallelMultiDestDijkstra(G, origins, "time", vecMapLabelCosts, 4);
+    auto res1 = hipop::multiDestDijkstra(G, "0", "time", {{"CAR", "PersonalVehicle"}});
+    auto res2 = hipop::parallelMultiDestDijkstra(G, origins, "time", vecMapLabelCosts, 4);
 
     return EXIT_SUCCESS;
 }
