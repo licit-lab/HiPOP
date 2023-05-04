@@ -863,6 +863,8 @@ namespace hipop
             res[i] = resPath;
         }
 
+        delete doubledG1;
+        delete doubledG2;
         return res;
     }
 
