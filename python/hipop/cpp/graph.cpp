@@ -42,6 +42,7 @@ void graph(py::module_ &m) {
                py::arg("id"), py::arg("up"), py::arg("down"), py::arg("length"), py::arg("costs"), py::arg("label") = "_def")
           .def("get_link", &hipop::OrientedGraph::getLink)
           .def("update_link_costs", &hipop::OrientedGraph::UpdateLinkCosts)
+          .def("update_costs", &hipop::OrientedGraph::UpdateCosts)
           .def("get_length", &hipop::OrientedGraph::getLength);
 
     m.def("generate_manhattan", &hipop::makeManhattan);

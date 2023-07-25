@@ -100,6 +100,19 @@ namespace hipop
     }
 
     /**
+     * @brief Update a list of link costs
+     * 
+     * @param maplinkcosts The map of the links/costs to update
+     */
+    void OrientedGraph::UpdateCosts(std::unordered_map<std::string, mapcosts> maplinkcosts)
+    {
+        for (auto i = maplinkcosts.begin(); i!= maplinkcosts.end(); i++)
+        {
+            UpdateLinkCosts(i->first, i->second);
+        }
+    }
+
+    /**
      * @brief Print the Nodes informations
      * 
      */
