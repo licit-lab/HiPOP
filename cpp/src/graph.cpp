@@ -106,9 +106,9 @@ namespace hipop
      */
     void OrientedGraph::UpdateCosts(std::unordered_map<std::string, mapcosts> maplinkcosts)
     {
-        for (auto i = maplinkcosts.begin(); i!= maplinkcosts.end(); i++)
+        for (auto it = maplinkcosts.begin(); it!= maplinkcosts.end(); it++)
         {
-            UpdateLinkCosts(i->first, i->second);
+            UpdateLinkCosts(it->first, it->second);
         }
     }
 
