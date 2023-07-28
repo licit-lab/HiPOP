@@ -14,6 +14,14 @@ namespace hipop
 {
     double computePathLength(OrientedGraph &G, const std::vector<std::string> &path);
 
+    double computePathCost(OrientedGraph &G, const std::vector<std::string> &path, std::string cost, const std::unordered_map<std::string, std::string> mapLabelCost);
+
+    std::vector<std::vector<double>> computePathsCosts(OrientedGraph &G,
+        const std::vector<std::vector<std::vector<std::string>>> &paths,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> mapLabelCost,
+        int threadNumber);
+
     pathCost dijkstra(
         const OrientedGraph &G, 
         const std::string &origin, 
@@ -77,6 +85,14 @@ namespace hipop
         int kPath, 
         int threadNumber);
 
+    std::vector<pathCost> parallelIntermodalDijkstra(
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::string> destinations,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::string cost,
+        int threadNumber,
+        std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
+        std::vector<setstring> vecAvailableLabels = {});
+
 } // namespace hipop
-
-

@@ -33,13 +33,13 @@ outputs:
         - {{ compiler('cxx') }}
         - make
         - cmake
-        - python=3.8
+        - python=3.10
       host:
-        - python=3.8
+        - python=3.10
         - hipoplib
         - pybind11
       run:
-        - python=3.8
+        - python=3.10
         - hipoplib
         - numpy
         - matplotlib

@@ -205,6 +205,56 @@ namespace hipop
     }
 
     /**
+     * @brief Batch computation of paths costs
+     *
+     * @param G The OrientedGraph on which the path is computed
+     * @param paths The paths grouped in batches
+     * @param cost The cost to consider
+     * @param mapLabelCost The type of cost map to choose on each label
+     * @param threadNumber Number of threads to use
+     * @return std::vector<double> The total costs of the paths
+     */
+    std::vector<std::vector<double>> computePathsCosts(
+        OrientedGraph &G,
+        const std::vector<std::vector<std::vector<std::string>>> &paths,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> mapLabelCost,
+        int threadNumber)
+    {
+        omp_set_num_threads(threadNumber);
+        int nbBatches = paths.size();
+
+        std::vector<std::vector<double>> res(nbBatches);
+        OrientedGraph *privateG;
+
+        #pragma omp parallel shared(res, G, paths, cost, mapLabelCost) private(privateG)
+        {
+            privateG = copyGraph(G);
+
+            #pragma omp for
+            for (int i = 0; i < nbBatches; i++)
+            {
+                int nbPaths = paths[i].size();
+                std::vector<double> res_(nbPaths);
+                for (int j = 0; j < nbPaths; j++)
+                {
+                  res_[j] = computePathCost(*privateG, paths[i][j], cost, mapLabelCost);
+                }
+                res[i] = res_;
+            }
+
+            // Not sure if the omp critical is necessary
+            #pragma omp critical
+            {
+                delete privateG;
+            }
+
+        }
+
+        return res;
+    }
+
+    /**
      * @brief Compute the total cost of a path
      * 
      * @param G The OrientedGraph on which the path is computed
@@ -217,13 +267,19 @@ namespace hipop
     {
         double c = 0;
 
-        for (size_t i = 0; i < path.size() - 1; i++)
+        if (path.size() == 0)
         {
-            Link *link = G.mnodes[path[i]]->madj[path[i + 1]];
-            c += link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+          return c;
         }
-
-        return c;
+        else
+        {
+          for (size_t i = 0; i < path.size() - 1; i++)
+          {
+              Link *link = G.mnodes[path[i]]->madj[path[i + 1]];
+              c += link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+          }
+          return c;
+        }
     }
 
     /**
@@ -620,8 +676,196 @@ namespace hipop
     {
         return aStar(G, origin, destination, cost, mapLabelCost, accessibleLabels, euclidianDist);
     }
-    
+
+    /**
+     * @brief Batch computation of intermodal shortest paths with openmp using the
+     *        a doubled graph to be sure that the path found is intermodal and Dijkstra algorithm
+     *
+     * @param G The OrientedGrah used for the shortest paths
+     * @param origins The vector of origins
+     * @param destinations The vector of destinations
+     * @param vecMapLabelCosts The vector of type of cost map to choose on each label
+     * @param cost The cost to consider in the shortest path algorithm
+     * @param threadNumber The number of thread for openmp
+     * @param vecAvailableLabels The vector of available labels
+     * @param pairMandatoryLabels The pair of labels groups the shortest paths must contain
+     * @return std::vector<pathCost> The vector of computed shortest path
+     */
+    std::vector<pathCost> parallelIntermodalDijkstra(
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::string> destinations,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::string cost,
+        int threadNumber,
+        std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
+        std::vector<setstring> vecAvailableLabels)
+    {
+        // Create doubled graph two ways
+        OrientedGraph *doubledG1 = new OrientedGraph(); // pass first on first elem of pairMandatoryLabels
+        OrientedGraph *doubledG2 = new OrientedGraph(); // pass first on second elem of pairMandatoryLabels
+        for(const auto &keyVal: G.mnodes) {
+            doubledG1->AddNode(keyVal.second->mid,
+                            keyVal.second->mposition[0],
+                            keyVal.second->mposition[1],
+                            keyVal.second->mlabel,
+                            keyVal.second->mexclude_movements);
+            doubledG1->AddNode(keyVal.second->mid + "_TWIN",
+                            keyVal.second->mposition[0],
+                            keyVal.second->mposition[1],
+                            keyVal.second->mlabel,
+                            keyVal.second->mexclude_movements);
+            doubledG1->AddNode(keyVal.second->mid + "_TRPL",
+                            keyVal.second->mposition[0],
+                            keyVal.second->mposition[1],
+                            keyVal.second->mlabel,
+                            keyVal.second->mexclude_movements);
+            doubledG2->AddNode(keyVal.second->mid,
+                            keyVal.second->mposition[0],
+                            keyVal.second->mposition[1],
+                            keyVal.second->mlabel,
+                            keyVal.second->mexclude_movements);
+            doubledG2->AddNode(keyVal.second->mid + "_TWIN",
+                            keyVal.second->mposition[0],
+                            keyVal.second->mposition[1],
+                            keyVal.second->mlabel,
+                            keyVal.second->mexclude_movements);
+            doubledG2->AddNode(keyVal.second->mid + "_TRPL",
+                            keyVal.second->mposition[0],
+                            keyVal.second->mposition[1],
+                            keyVal.second->mlabel,
+                            keyVal.second->mexclude_movements);
+        }
+        for(const auto &keyVal: G.mlinks) {
+          doubledG1->AddLink(keyVal.second->mid,
+                          keyVal.second->mupstream,
+                          keyVal.second->mdownstream,
+                          keyVal.second->mlength,
+                          keyVal.second->mcosts,
+                          keyVal.second->mlabel);
+          doubledG1->AddLink(keyVal.second->mid + "_TWIN",
+                          keyVal.second->mupstream + "_TWIN",
+                          keyVal.second->mdownstream + "_TWIN",
+                          keyVal.second->mlength,
+                          keyVal.second->mcosts,
+                          keyVal.second->mlabel);
+          doubledG1->AddLink(keyVal.second->mid + "_TRPL",
+                          keyVal.second->mupstream + "_TRPL",
+                          keyVal.second->mdownstream + "_TRPL",
+                          keyVal.second->mlength,
+                          keyVal.second->mcosts,
+                          keyVal.second->mlabel);
+          doubledG2->AddLink(keyVal.second->mid,
+                          keyVal.second->mupstream,
+                          keyVal.second->mdownstream,
+                          keyVal.second->mlength,
+                          keyVal.second->mcosts,
+                          keyVal.second->mlabel);
+          doubledG2->AddLink(keyVal.second->mid + "_TWIN",
+                          keyVal.second->mupstream + "_TWIN",
+                          keyVal.second->mdownstream + "_TWIN",
+                          keyVal.second->mlength,
+                          keyVal.second->mcosts,
+                          keyVal.second->mlabel);
+          doubledG2->AddLink(keyVal.second->mid + "_TRPL",
+                          keyVal.second->mupstream + "_TRPL",
+                          keyVal.second->mdownstream + "_TRPL",
+                          keyVal.second->mlength,
+                          keyVal.second->mcosts,
+                          keyVal.second->mlabel);
+          // Add link on G1 between original and twin graph only if it corresponds to a mandatory label of the first group
+          bool original_to_twin_G1 = pairMandatoryLabels.first.count(keyVal.second->mlabel);
+          if (original_to_twin_G1) {
+            doubledG1->AddLink(keyVal.second->mid + "_ORIGINAL_TO_TWIN",
+                            keyVal.second->mupstream,
+                            keyVal.second->mdownstream + "_TWIN",
+                            keyVal.second->mlength,
+                            keyVal.second->mcosts,
+                            keyVal.second->mlabel);
+          }
+          // Add link on G2 between original and twin graph only if it corresponds to a mandatory label of the second group
+          bool original_to_twin_G2 = pairMandatoryLabels.second.count(keyVal.second->mlabel);
+          if (original_to_twin_G2) {
+            doubledG2->AddLink(keyVal.second->mid + "_ORIGINAL_TO_TWIN",
+                            keyVal.second->mupstream,
+                            keyVal.second->mdownstream + "_TWIN",
+                            keyVal.second->mlength,
+                            keyVal.second->mcosts,
+                            keyVal.second->mlabel);
+          }
+          // Add link on G1 between twin and triple graph only if it corresponds to a mandatory label of the second group
+          bool twin_to_trpl_G1 = pairMandatoryLabels.second.count(keyVal.second->mlabel);
+          if (twin_to_trpl_G1) {
+            doubledG1->AddLink(keyVal.second->mid + "_TWIN_TO_TRPL",
+                            keyVal.second->mupstream + "_TWIN",
+                            keyVal.second->mdownstream + "_TRPL",
+                            keyVal.second->mlength,
+                            keyVal.second->mcosts,
+                            keyVal.second->mlabel);
+          }
+          // Add link on G2 between twin and triple graph only if it corresponds to a mandatory label of the first group
+          bool twin_to_trpl_G2 = pairMandatoryLabels.first.count(keyVal.second->mlabel);
+          if (twin_to_trpl_G2) {
+            doubledG2->AddLink(keyVal.second->mid + "_TWIN_TO_TRPL",
+                            keyVal.second->mupstream + "_TWIN",
+                            keyVal.second->mdownstream + "_TRPL",
+                            keyVal.second->mlength,
+                            keyVal.second->mcosts,
+                            keyVal.second->mlabel);
+          }
+        }
+
+        // Set destinations as nodes of the trpl graph
+        std::vector<std::string> destinationsTwin;
+        for (int i=0; i < destinations.size(); i++) {
+          destinationsTwin.push_back(destinations[i] + "_TRPL");
+        }
+
+        // Launch dijkstra algo for each OD in parallel
+        omp_set_num_threads(threadNumber);
+
+        int nbPath = origins.size();
+        std::vector<pathCost> res(nbPath);
+
+        #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
+        for (int i = 0; i < nbPath; i++)
+        {
+            pathCost resPath1;
+            pathCost resPath2;
+            if (vecAvailableLabels.empty())
+            {
+                // Look for shortest path on G1
+                resPath1 = dijkstra(*doubledG1, origins[i], destinationsTwin[i], cost, vecMapLabelCosts[i], {});
+                // Look for shortest path on G2
+                resPath2 = dijkstra(*doubledG2, origins[i], destinationsTwin[i], cost, vecMapLabelCosts[i], {});
+            }
+            else
+            {
+                resPath1 = dijkstra(*doubledG1, origins[i], destinationsTwin[i], cost, vecMapLabelCosts[i], vecAvailableLabels[i]);
+                resPath2 = dijkstra(*doubledG2, origins[i], destinationsTwin[i], cost, vecMapLabelCosts[i], vecAvailableLabels[i]);
+            }
+            // Keep best of the two paths
+            pathCost resPath;
+            if (resPath1.second <= resPath2.second) {
+               resPath = resPath1;
+            }
+            else {
+               resPath = resPath2;
+            }
+            // Decode path
+            if (resPath.first.size() > 0) {
+              for (int k = 0; k < resPath.first.size(); k++) {
+                if (resPath.first[k].size() > 5 && (resPath.first[k].compare(resPath.first[k].size() - 5, 5, "_TWIN") == 0 || resPath.first[k].compare(resPath.first[k].size() - 5, 5, "_TRPL") == 0)) {
+                  resPath.first[k] = resPath.first[k].substr(0, resPath.first[k].size() - 5);
+                }
+              }
+            }
+            res[i] = resPath;
+        }
+
+        delete doubledG1;
+        delete doubledG2;
+        return res;
+    }
+
 } // namespace hipop
-
-
-

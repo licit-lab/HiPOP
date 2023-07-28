@@ -32,6 +32,19 @@ void shortest_path(py::module_ &m) {
     m.def("yen_k_shortest_path", &hipop::YenKShortestPath);
     m.def("astar_euclidian_dist", &hipop::aStarEuclidianDist);
     m.def("compute_path_length", &hipop::computePathLength);
+    m.def("compute_path_cost", &hipop::computePathCost);
+    m.def("compute_paths_costs", &hipop::computePathsCosts);
+    m.def(
+        "parallel_intermodal_dijkstra",
+        &hipop::parallelIntermodalDijkstra,
+        py::arg("graph"),
+        py::arg("origins"),
+        py::arg("destinations"),
+        py::arg("map_label_costs"),
+        py::arg("cost"),
+        py::arg("thread_number"),
+        py::arg("pair_mandatory_labels"),
+        py::arg("available_labels") = std::vector<setstring>());
 }
 
 }
