@@ -90,6 +90,21 @@ namespace hipop
     };
 
     /**
+     * @brief Delete a link from the OrientedGraph
+     * 
+     * @param _id The Link id to delete
+     */
+    void OrientedGraph::DeleteLink(std::string _id) {
+        if (mlinks.find(_id) != mlinks.end())
+        {
+            Link* l = mlinks[_id];
+            mlinks.erase(_id);
+            delete l;
+            l = NULL;
+        }
+    };
+
+    /**
      * @brief Update a Link costs
      * 
      * @param lid The id of the Link to update
