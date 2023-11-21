@@ -97,10 +97,39 @@ namespace hipop
     void OrientedGraph::DeleteLink(std::string _id) {
         if (mlinks.find(_id) != mlinks.end())
         {
-            Link* l = mlinks[_id];
+            Link* pLink = mlinks[_id];
+
+            if (mnodes.find(pLink->mupstream) != mnodes.end())
+            {
+                Node* pUp = mnodes[pLink->mupstream];
+                pUp->madj.erase(_id);
+            }
+
+            if (mnodes.find(pLink->mdownstream) != mnodes.end())
+            {
+                Node* pDown = mnodes[pLink->mdownstream];
+                pDown->mradj.erase(_id);
+            }
+
             mlinks.erase(_id);
-            delete l;
-            l = NULL;
+            delete pLink;
+            pLink = NULL;
+        }
+    };
+
+    /**
+     * @brief Delete all links to a specific node
+     *
+     * @param _id The Node id to consider
+     */
+    void OrientedGraph::DeleteAllLinksToNode(std::string _id) {
+        if (mnodes.find(_id) != mnodes.end())
+        {
+            Node* pNode = mnodes[_id];
+            for (auto it = pNode->mradj.begin(); it!= pNode->mradj.end(); it++)
+            {
+                DeleteLink(it->first);
+            }
         }
     };
 
