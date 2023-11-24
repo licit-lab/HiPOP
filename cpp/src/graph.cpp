@@ -126,7 +126,7 @@ namespace hipop
         if (mnodes.find(_id) != mnodes.end())
         {
             Node* pNode = mnodes[_id];
-            for (auto it = pNode->mradj.begin(); it!= pNode->mradj.end(); it++)
+            for (auto it = pNode->madj.begin(); it!= pNode->madj.end(); it++)
             {
                 DeleteLink(it->first);
             }
