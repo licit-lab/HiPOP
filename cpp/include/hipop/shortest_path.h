@@ -82,7 +82,7 @@ namespace hipop
         const std::vector<setstring> accessibleLabels, 
         double minDist, 
         double maxDist, 
-        int kPath, 
+        const std::vector<std::int> &kPaths, 
         int threadNumber);
 
     std::vector<pathCost> parallelIntermodalDijkstra(

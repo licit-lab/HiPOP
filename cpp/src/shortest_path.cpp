@@ -507,7 +507,7 @@ namespace hipop
      * @param accessibleLabels The vector set of accessible label
      * @param minDist The minimal distance difference
      * @param maxDist The maximal distance difference
-     * @param kPath The number of path to compute
+     * @param kPaths The number of path to compute
      * @param threadNumber Number of threads to use
      * @return std::vector<std::vector<pathCost>> 
      */
@@ -520,7 +520,7 @@ namespace hipop
         const std::vector<setstring> accessibleLabels,
         double minDist, 
         double maxDist, 
-        int kPath, 
+        const std::vector<std::int> &kPaths,
         int threadNumber)
     {
         omp_set_num_threads(threadNumber);
@@ -538,11 +538,11 @@ namespace hipop
             {
                 if (accessibleLabels.empty())
                 {
-                    res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, {}, vecMapLabelCosts[i], minDist, maxDist, kPath);
+                    res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, {}, vecMapLabelCosts[i], minDist, maxDist, kPaths[i]);
                 }
                 else
                 {
-                    res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, accessibleLabels[i], vecMapLabelCosts[i], minDist, maxDist, kPath);
+                    res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, accessibleLabels[i], vecMapLabelCosts[i], minDist, maxDist, kPaths[i]);
                 }
             }
             
