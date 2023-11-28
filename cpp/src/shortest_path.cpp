@@ -520,7 +520,7 @@ namespace hipop
         const std::vector<setstring> accessibleLabels,
         double minDist, 
         double maxDist, 
-        const std::vector<std::int> &kPaths,
+        const std::vector<int> &kPaths,
         int threadNumber)
     {
         omp_set_num_threads(threadNumber);
