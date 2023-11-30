@@ -85,7 +85,7 @@ namespace hipop
         const std::vector<int> &kPaths, 
         int threadNumber);
 
-    std::vector<pathCost> parallelIntermodalDijkstra(
+    std::vector<std::vector<pathCost>> parallelKIntermodalShortestPath(
         const OrientedGraph &G,
         std::vector<std::string> origins,
         std::vector<std::string> destinations,
@@ -93,6 +93,9 @@ namespace hipop
         std::string cost,
         int threadNumber,
         std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
+        double minDist,
+        double maxDist,
+        std::vector<int> kPaths,
         std::vector<setstring> vecAvailableLabels = {});
 
 } // namespace hipop

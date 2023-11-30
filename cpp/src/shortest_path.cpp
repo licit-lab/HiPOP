@@ -507,7 +507,7 @@ namespace hipop
      * @param accessibleLabels The vector set of accessible label
      * @param minDist The minimal distance difference
      * @param maxDist The maximal distance difference
-     * @param kPaths The number of path to compute
+     * @param kPaths The number of paths to compute
      * @param threadNumber Number of threads to use
      * @return std::vector<std::vector<pathCost>> 
      */
@@ -529,7 +529,7 @@ namespace hipop
         std::vector<std::vector<pathCost>> res(nbOD);
         OrientedGraph *privateG;
 
-        #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins, destinations) private(privateG)
+        #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins, destinations, kPaths) private(privateG)
         {
             privateG = copyGraph(G);
 
@@ -687,11 +687,14 @@ namespace hipop
      * @param vecMapLabelCosts The vector of type of cost map to choose on each label
      * @param cost The cost to consider in the shortest path algorithm
      * @param threadNumber The number of thread for openmp
-     * @param vecAvailableLabels The vector of available labels
      * @param pairMandatoryLabels The pair of labels groups the shortest paths must contain
-     * @return std::vector<pathCost> The vector of computed shortest path
+     * @param kPaths The number of paths to compute
+     * @param minDist The minimal distance difference
+     * @param maxDist The maximal distance difference
+     * @param vecAvailableLabels The vector of available labels
+     * @return std::vector<std::vector<pathCost>> The vector of computed shortest path
      */
-    std::vector<pathCost> parallelIntermodalDijkstra(
+    std::vector<std::vector<pathCost>> parallelKIntermodalShortestPath(
         const OrientedGraph &G,
         std::vector<std::string> origins,
         std::vector<std::string> destinations,
@@ -699,6 +702,9 @@ namespace hipop
         std::string cost,
         int threadNumber,
         std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
+        double minDist,
+        double maxDist,
+        std::vector<int> kPaths,
         std::vector<setstring> vecAvailableLabels)
     {
         // Create doubled graph two ways
@@ -824,48 +830,62 @@ namespace hipop
         // Launch dijkstra algo for each OD in parallel
         omp_set_num_threads(threadNumber);
 
-        int nbPath = origins.size();
-        std::vector<pathCost> res(nbPath);
+        int nbOD = origins.size();
+        std::vector<std::vector<pathCost>> res(nbOD);
+        OrientedGraph *privateDoubledG1;
+        OrientedGraph *privateDoubledG2;
 
-        #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
-        for (int i = 0; i < nbPath; i++)
+        #pragma omp parallel shared(res, vecAvailableLabels, vecMapLabelCosts, origins, destinationsTwin, kPaths, doubledG1, doubledG2) private(privateDoubledG1, privateDoubledG2)
         {
-            pathCost resPath1;
-            pathCost resPath2;
+          privateDoubledG1 = copyGraph(*doubledG1);
+          privateDoubledG2 = copyGraph(*doubledG2);
+
+          #pragma omp for
+          for (int i = 0; i < nbOD; i++)
+          {
+            std::vector<pathCost> resPath1;
+            std::vector<pathCost> resPath2;
+
             if (vecAvailableLabels.empty())
             {
-                // Look for shortest path on G1
-                resPath1 = dijkstra(*doubledG1, origins[i], destinationsTwin[i], cost, vecMapLabelCosts[i], {});
-                // Look for shortest path on G2
-                resPath2 = dijkstra(*doubledG2, origins[i], destinationsTwin[i], cost, vecMapLabelCosts[i], {});
+                // Look for shortest paths on G1
+                resPath1 = KShortestPath(*privateDoubledG1, origins[i], destinationsTwin[i], cost, {}, vecMapLabelCosts[i], minDist, maxDist, kPaths[i]);
+                // Look for shortest paths on G2
+                resPath2 = KShortestPath(*privateDoubledG2, origins[i], destinationsTwin[i], cost, {}, vecMapLabelCosts[i], minDist, maxDist, kPaths[i]);
             }
             else
             {
-                resPath1 = dijkstra(*doubledG1, origins[i], destinationsTwin[i], cost, vecMapLabelCosts[i], vecAvailableLabels[i]);
-                resPath2 = dijkstra(*doubledG2, origins[i], destinationsTwin[i], cost, vecMapLabelCosts[i], vecAvailableLabels[i]);
+                resPath1 = KShortestPath(*privateDoubledG1, origins[i], destinationsTwin[i], cost, vecAvailableLabels[i], vecMapLabelCosts[i], minDist, maxDist, kPaths[i]);
+                resPath2 = KShortestPath(*privateDoubledG2, origins[i], destinationsTwin[i], cost, vecAvailableLabels[i], vecMapLabelCosts[i], minDist, maxDist, kPaths[i]);
             }
-            // Keep best of the two paths
-            pathCost resPath;
-            if (resPath1.second <= resPath2.second) {
-               resPath = resPath1;
-            }
-            else {
-               resPath = resPath2;
-            }
-            // Decode path
-            if (resPath.first.size() > 0) {
-              for (int k = 0; k < resPath.first.size(); k++) {
-                if (resPath.first[k].size() > 5 && (resPath.first[k].compare(resPath.first[k].size() - 5, 5, "_TWIN") == 0 || resPath.first[k].compare(resPath.first[k].size() - 5, 5, "_TRPL") == 0)) {
-                  resPath.first[k] = resPath.first[k].substr(0, resPath.first[k].size() - 5);
+            // Concat resPath1 and resPath2
+            resPath1.insert(resPath1.end(), resPath2.begin(), resPath2.end());
+            // Keep the k best paths found
+            std::sort(resPath1.begin(), resPath1.end(), [](pathCost a, pathCost b)
+              { return a.second < b.second; });
+            std::vector<pathCost> resPath(resPath1.begin(), resPath1.begin() + kPaths[i]);
+            // Decode paths
+            for (int j = 0; j < resPath.size(); j++){
+              if (resPath[j].first.size() > 0) {
+                for (int k = 0; k < resPath[j].first.size(); k++) {
+                  if (resPath[j].first[k].size() > 5 && (resPath[j].first[k].compare(resPath[j].first[k].size() - 5, 5, "_TWIN") == 0 || resPath[j].first[k].compare(resPath[j].first[k].size() - 5, 5, "_TRPL") == 0)) {
+                    resPath[j].first[k] = resPath[j].first[k].substr(0, resPath[j].first[k].size() - 5);
+                  }
                 }
               }
             }
             res[i] = resPath;
         }
 
-        delete doubledG1;
-        delete doubledG2;
-        return res;
+        #pragma omp critical
+        {
+            if (privateDoubledG1) delete(privateDoubledG1);
+            if (privateDoubledG2) delete(privateDoubledG2);
+        }
+      }
+      if (doubledG1) delete(doubledG1);
+      if (doubledG2) delete(doubledG2);
+      return res;
     }
 
 } // namespace hipop
