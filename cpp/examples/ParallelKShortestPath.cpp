@@ -31,7 +31,7 @@ int main()
         {{"CAR", "PersonalVehicle"}}
     };
 
-    //auto paths = hipop::parallelKShortestPath(G, origins, destinations, "time", vecMapLabelCosts, {}, 0, 10, kPaths, 4);
+    //auto paths = hipop::parallelKShortestPath(G, origins, destinations, "time", vecMapLabelCosts, {}, 0.1, 0.95, 10, 10, kPaths, 4);
     auto paths = hipop::parallelDijkstra(G, origins, destinations, vecMapLabelCosts, "time", 4, {});
 
     return EXIT_SUCCESS;

@@ -69,9 +69,12 @@ namespace hipop
         const std::string &cost, 
         setstring accessibleLabels,
         const std::unordered_map<std::string, std::string> &mapLabelCost,
-        double minDist, 
-        double maxDist, 
-        int kPath);
+        double maxDiffCost,
+        double maxDistInCommon,
+        int costMultiplier,
+        int maxRetry,
+        int kPath,
+        bool intermodal);
 
     std::vector<std::vector<pathCost>> parallelKShortestPath(
         OrientedGraph &G, 
@@ -80,8 +83,10 @@ namespace hipop
         const std::string &cost,
         const std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
         const std::vector<setstring> accessibleLabels, 
-        double minDist, 
-        double maxDist, 
+        double maxDiffCost,
+        double maxDistInCommon,
+        int costMultiplier,
+        int maxRetry,
         const std::vector<int> &kPaths, 
         int threadNumber);
 
@@ -93,8 +98,10 @@ namespace hipop
         std::string cost,
         int threadNumber,
         std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
-        double minDist,
-        double maxDist,
+        double maxDiffCost,
+        double maxDistInCommon,
+        int costMultiplier,
+        int maxRetry,
         std::vector<int> kPaths,
         std::vector<setstring> vecAvailableLabels = {});
 

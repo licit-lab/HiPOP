@@ -44,8 +44,10 @@ void shortest_path(py::module_ &m) {
         py::arg("cost"),
         py::arg("thread_number"),
         py::arg("pair_mandatory_labels"),
-        py::arg("min_dist"),
-        py::arg("max_dist"),
+        py::arg("max_diff_cost"),
+        py::arg("max_dist_in_common"),
+        py::arg("cost_multiplier"),
+        py::arg("max_retry"),
         py::arg("nb_paths"),
         py::arg("available_labels") = std::vector<setstring>());
 }
