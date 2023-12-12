@@ -136,6 +136,8 @@ namespace hipop
         void AddNode(Node *n);
         void AddLink(std::string _id, std::string _up, std::string _down, double length, mapcosts _costs, std::string label = "");
         void AddLink(Link* l);
+        void DeleteLink(std::string _id);
+        void DeleteAllLinksToNode(std::string _id);
         void UpdateLinkCosts(std::string lid, mapcosts _costs);
         void UpdateCosts(std::unordered_map<std::string, mapcosts> maplinkcosts);
         double getLength(std::string _up, std::string _down);

@@ -90,6 +90,53 @@ namespace hipop
     };
 
     /**
+     * @brief Delete a link from the OrientedGraph
+     * 
+     * @param _id The Link id to delete
+     */
+    void OrientedGraph::DeleteLink(std::string _id) {
+
+        if (mlinks.find(_id) != mlinks.end())
+        {
+            Link* pLink = mlinks[_id];
+
+            if (mnodes.find(pLink->mupstream) != mnodes.end())
+            {
+                Node* pUp = mnodes[pLink->mupstream];
+                pUp->madj.erase(pLink->mdownstream);
+            }
+
+            if (mnodes.find(pLink->mdownstream) != mnodes.end())
+            {
+                Node* pDown = mnodes[pLink->mdownstream];
+                pDown->mradj.erase(pLink->mupstream);
+            }
+
+            mlinks.erase(_id);
+            delete pLink;
+            pLink = NULL;
+        }
+    };
+
+    /**
+     * @brief Delete all links to a specific node
+     *
+     * @param _id The Node id to consider
+     */
+    void OrientedGraph::DeleteAllLinksToNode(std::string _id) {
+
+        if (mnodes.find(_id) != mnodes.end())
+        {
+            Node* pNode = mnodes[_id];
+            for (auto it = pNode->madj.begin(); it!= pNode->madj.end(); it++)
+            {
+                DeleteLink(it->second->mid);
+            }
+        }
+
+    };
+
+    /**
      * @brief Update a Link costs
      * 
      * @param lid The id of the Link to update
