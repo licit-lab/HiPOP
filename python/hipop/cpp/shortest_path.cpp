@@ -35,8 +35,8 @@ void shortest_path(py::module_ &m) {
     m.def("compute_path_cost", &hipop::computePathCost);
     m.def("compute_paths_costs", &hipop::computePathsCosts);
     m.def(
-        "parallel_intermodal_dijkstra",
-        &hipop::parallelIntermodalDijkstra,
+        "parallel_k_intermodal_shortest_path",
+        &hipop::parallelKIntermodalShortestPath,
         py::arg("graph"),
         py::arg("origins"),
         py::arg("destinations"),
@@ -44,6 +44,11 @@ void shortest_path(py::module_ &m) {
         py::arg("cost"),
         py::arg("thread_number"),
         py::arg("pair_mandatory_labels"),
+        py::arg("max_diff_cost"),
+        py::arg("max_dist_in_common"),
+        py::arg("cost_multiplier"),
+        py::arg("max_retry"),
+        py::arg("nb_paths"),
         py::arg("available_labels") = std::vector<setstring>());
 }
 
