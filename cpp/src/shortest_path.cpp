@@ -86,21 +86,30 @@ namespace hipop
                 return path;
             }
 
-            for (const auto link : G.mnodes.at(u)->getExits(prev[u]))
+            try
             {
-                if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
+                for (const auto link : G.mnodes.at(u)->getExits(prev[u]))
                 {
-                    std::string neighbor = link->mdownstream;
-                    double new_dist = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost];
-
-                    if (dist[neighbor] > new_dist)
+                    if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
                     {
-                        dist[neighbor] = new_dist;
-                        pq.push(QueueItem(new_dist, neighbor));
-                        prev[neighbor] = u;
+                        std::string neighbor = link->mdownstream;
+                        double new_dist = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+
+                        if (dist[neighbor] > new_dist)
+                        {
+                            dist[neighbor] = new_dist;
+                            pq.push(QueueItem(new_dist, neighbor));
+                            prev[neighbor] = u;
+                        }
                     }
                 }
             }
+            catch(const std::out_of_range& e)
+            {
+                std::cerr <<  "The node " << u << " does not belong to the graph \n";
+            }
+            
+            
         }
         return path;
     }
@@ -157,7 +166,7 @@ namespace hipop
      * @param initial_costs The intial cost of the links to save
      * @param costMultiplier The multiplier to apply to the links costs of the path
      */
-    void increaseCostsFromPath(OrientedGraph &G, const std::vector<std::string> &path, linkMapCosts &initial_costs, int costMultiplier)
+    void increaseCostsFromPath(OrientedGraph &G, const std::vector<std::string> &path, linkMapCosts &initial_costs, double costMultiplier)
     {
 
         for (size_t i = 0; i < path.size() - 1; i++)
@@ -192,7 +201,7 @@ namespace hipop
      * @param initial_costs The intial cost of the links to save
      * @param costMultiplier The multiplier to apply to the links costs of the path
      */
-    void increaseCostsFromIntermodalPath(OrientedGraph &G, const std::vector<std::string> &path, linkMapCosts &initial_costs, int costMultiplier)
+    void increaseCostsFromIntermodalPath(OrientedGraph &G, const std::vector<std::string> &path, linkMapCosts &initial_costs, double costMultiplier)
     {
 
         for (size_t i = 0; i < path.size() - 1; i++)
@@ -523,7 +532,7 @@ namespace hipop
         const std::unordered_map<std::string, std::string> &mapLabelCost,
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         int kPath,
         bool intermodal)
@@ -553,7 +562,7 @@ namespace hipop
 
         int pathCounter = 1, retry = 0;
 
-        while (pathCounter < kPath && retry < maxRetry)
+        while (pathCounter < kPath && retry < maxRetry )
         {
             pathCost newPath = dijkstra(G, origin, destination, cost, mapLabelCost, accessibleLabels);
             newPath.second = computePathCostWithInitialCostsDict(G, newPath.first, cost, mapLabelCost, initial_costs);
@@ -577,25 +586,24 @@ namespace hipop
                 isNew = (std::all_of(paths.cbegin(), paths.cend(), [newPath](pathCost p){ return p.first != newPath.first; }));
             }
 
-
             if (maxDistInCommonChecked && maxDiffCostChecked && isNew)
             {
                 paths.push_back(newPath);
                 retry = 0;
                 pathCounter += 1;
             }
-
             else
             {
-                if (intermodal)
-                {
-                    increaseCostsFromIntermodalPath(G, newPath.first, initial_costs, costMultiplier);
-                }
-                else
-                {
-                    increaseCostsFromPath(G, newPath.first, initial_costs, costMultiplier);
-                }
                 retry += 1;
+            }
+
+            if (intermodal)
+            {
+                increaseCostsFromIntermodalPath(G, newPath.first, initial_costs, costMultiplier);
+            }
+            else
+            {
+                increaseCostsFromPath(G, newPath.first, initial_costs, costMultiplier);
             }
         }
 
@@ -736,7 +744,7 @@ namespace hipop
         const std::vector<setstring> accessibleLabels,
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         const std::vector<int> &kPaths,
         int threadNumber)
@@ -927,7 +935,7 @@ namespace hipop
         std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         std::vector<int> kPaths,
         std::vector<setstring> vecAvailableLabels)

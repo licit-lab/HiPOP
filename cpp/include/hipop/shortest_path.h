@@ -71,7 +71,7 @@ namespace hipop
         const std::unordered_map<std::string, std::string> &mapLabelCost,
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         int kPath,
         bool intermodal);
@@ -85,7 +85,7 @@ namespace hipop
         const std::vector<setstring> accessibleLabels, 
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         const std::vector<int> &kPaths, 
         int threadNumber);
@@ -100,7 +100,7 @@ namespace hipop
         std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         std::vector<int> kPaths,
         std::vector<setstring> vecAvailableLabels = {});
