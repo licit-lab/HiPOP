@@ -4,6 +4,7 @@
 #include <omp.h>
 
 #include <vector>
+#include <tuple>
 #include <queue>
 #include <unordered_map>
 #include <string>
@@ -115,6 +116,79 @@ namespace hipop
     }
 
     /**
+     * @brief Find duplicated origin - destination - mapLabelCost to prevent computing
+     *        several times the same shortest paths
+     *
+     * @param origins The vector of origins
+     * @param destinations The vector of destinations
+     * @param vecMapLabelCosts The vector of type of cost map to choose on each label
+     * @return r The tuple with a vector of unique elements indices
+     *         as first element,  a map of correspondance between non unique index and the unique
+     *         index with the same origin - destination - mapLabelCost as second element,
+     *         and a map of correspondance between unique index and the number of
+     *         shortest paths to compute for it
+     */
+    std::tuple<std::vector<int>, std::unordered_map<int, int>, std::unordered_map<int, int>> find_duplicates(
+        const std::vector<std::string> &origins,
+        const std::vector<std::string> &destinations,
+        const std::vector<std::unordered_map<std::string, std::string> > &vecMapLabelCosts,
+        const std::vector<int> &kPaths)
+    {
+        int nbODs = origins.size();
+        std::vector<std::string> ODsLabelCosts;
+        for (int i = 0; i < nbODs; ++i)
+        {
+            std::string o = origins[i];
+            std::string d = destinations[i];
+            std::unordered_map<std::string, std::string> mapLabelCosts = vecMapLabelCosts[i];
+            std::vector<std::pair<std::string, std::string>> vecLabelCosts = std::vector<std::pair<std::string, std::string>>(mapLabelCosts.begin(), mapLabelCosts.end());
+            std::sort(vecLabelCosts.begin(), vecLabelCosts.end(), [](const std::pair<std::string,std::string> &left, const std::pair<std::string,std::string> &right) {
+                return left.first < right.first;
+            });
+
+            std::string ODLabelCosts = o + d;
+            for (int j = 0; j < vecLabelCosts.size(); ++j)
+            {
+                ODLabelCosts = ODLabelCosts + "-" + vecLabelCosts[j].first + ":" + vecLabelCosts[j].second;
+            }
+            ODsLabelCosts.push_back(ODLabelCosts);
+        }
+
+        std::set<std::string> s;
+        std::vector<int> uniqueIndices;
+        std::unordered_map<int, int> nbPaths;
+        std::unordered_map<int, int> duplicateIndices;
+        for (int i = 0; i < ODsLabelCosts.size(); i++)
+        {
+            if (s.insert(ODsLabelCosts[i]).second)
+            {
+                uniqueIndices.push_back(i);
+                if (!kPaths.empty())
+                {
+                    nbPaths[i] = kPaths[i];
+                }
+                else
+                {
+                    nbPaths[i] = 1;
+                }
+
+            } else
+            {
+                 int corresponding_uniqueIdx= find(ODsLabelCosts.begin(), ODsLabelCosts.end(), ODsLabelCosts[i]) - ODsLabelCosts.begin();
+                 duplicateIndices[i] = corresponding_uniqueIdx;
+                 if ((!kPaths.empty()) && (kPaths[i] > nbPaths[corresponding_uniqueIdx]))
+                 {
+                    nbPaths[corresponding_uniqueIdx] = kPaths[i];
+                 }
+            }
+        }
+
+        std::tuple<std::vector<int>, std::unordered_map<int, int>, std::unordered_map<int, int>> r = std::make_tuple(uniqueIndices, duplicateIndices, nbPaths);
+
+        return r;
+    }
+
+    /**
      * @brief Batch computation of shortest with openmp using the Dijkstra algorithm
      * 
      * @param G The OrientedGrah used for the shortest paths
@@ -137,20 +211,32 @@ namespace hipop
     {
         omp_set_num_threads(threadNumber);
 
+        std::vector<int> emptyV;
+        std::vector<int> uniqueIndices;
+        std::unordered_map<int, int> duplicateIndices;
+        std::unordered_map<int, int> nbPathsPerOD;
+        tie(uniqueIndices, duplicateIndices, nbPathsPerOD) = find_duplicates(origins, destinations, vecMapLabelCosts, emptyV);
+
         int nbPath = origins.size();
         std::vector<pathCost> res(nbPath);
 
         #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
-        for (int i = 0; i < nbPath; i++)
+        for (int i = 0; i < uniqueIndices.size(); i++)
         {
+            int uniqueIdx = uniqueIndices[i];
             if (vecAvailableLabels.empty())
             {
-                res[i] = dijkstra(G, origins[i], destinations[i], cost, vecMapLabelCosts[i], {});
+                res[uniqueIdx] = dijkstra(G, origins[uniqueIdx], destinations[uniqueIdx], cost, vecMapLabelCosts[uniqueIdx], {});
             }
             else
             {
-                res[i] = dijkstra(G, origins[i], destinations[i], cost, vecMapLabelCosts[i], vecAvailableLabels[i]);
+                res[uniqueIdx] = dijkstra(G, origins[uniqueIdx], destinations[uniqueIdx], cost, vecMapLabelCosts[uniqueIdx], vecAvailableLabels[uniqueIdx]);
             }
+        }
+
+        for (const auto& elem : duplicateIndices)
+        {
+            res[elem.first] = res[elem.second];
         }
 
         return res;
@@ -750,28 +836,34 @@ namespace hipop
         int threadNumber)
     {
         omp_set_num_threads(threadNumber);
-        int nbOD = origins.size();
 
-        std::vector<std::vector<pathCost>> res(nbOD);
+        int nbODs = origins.size();
+        std::vector<std::vector<pathCost>> res(nbODs);
         OrientedGraph *privateG;
+
+        std::vector<int> uniqueIndices;
+        std::unordered_map<int, int> duplicateIndices;
+        std::unordered_map<int, int> nbPaths;
+        tie(uniqueIndices, duplicateIndices, nbPaths) = find_duplicates(origins, destinations, vecMapLabelCosts, kPaths);
 
         #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins, destinations, kPaths) private(privateG)
         {
             privateG = copyGraph(G);
 
             #pragma omp for
-            for (int i = 0; i < nbOD; i++)
+            for (int i = 0; i < uniqueIndices.size(); ++i)
             {
+                int uniqueIdx = uniqueIndices[i];
                 if (accessibleLabels.empty())
                 {
-                    res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, {}, vecMapLabelCosts[i], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, kPaths[i], false);
+                    res[uniqueIdx] = KShortestPath(*privateG, origins[uniqueIdx], destinations[uniqueIdx], cost, {}, vecMapLabelCosts[uniqueIdx], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, nbPaths[uniqueIdx], false);
                 }
                 else
                 {
-                    res[i] = KShortestPath(*privateG, origins[i], destinations[i], cost, accessibleLabels[i], vecMapLabelCosts[i], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, kPaths[i], false);
+                    res[uniqueIdx] = KShortestPath(*privateG, origins[uniqueIdx], destinations[uniqueIdx], cost, accessibleLabels[uniqueIdx], vecMapLabelCosts[uniqueIdx], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, nbPaths[uniqueIdx], false);
                 }
             }
-            
+
             // Not sure if the omp critical is necessary
             #pragma omp critical
             {
@@ -779,7 +871,27 @@ namespace hipop
             }
 
         }
-        
+
+        // Set shortest paths of duplicates
+        for (const auto& elem : duplicateIndices)
+        {
+            res[elem.first] = res[elem.second];
+        }
+
+        // Keep only the proper number of paths for each OD
+        for (int i = 0; i < nbODs; ++i)
+        {
+            int k = kPaths[i];
+            std::vector<pathCost> res_paths = res[i];
+            if (res_paths.size() > k)
+            {
+                std::sort(res_paths.begin(), res_paths.end(), [](pathCost a, pathCost b)
+                  { return a.second < b.second; });
+                std::vector<pathCost> res_k_best_paths(res_paths.begin(), res_paths.begin() + k);
+                res[i] = res_k_best_paths;
+            }
+        }
+
         return res;
     }
 
@@ -1065,6 +1177,12 @@ namespace hipop
 
         int nbOD = origins.size();
         std::vector<std::vector<pathCost>> res(nbOD);
+
+        std::vector<int> uniqueIndices;
+        std::unordered_map<int, int> duplicateIndices;
+        std::unordered_map<int, int> nbPaths;
+        tie(uniqueIndices, duplicateIndices, nbPaths) = find_duplicates(origins, destinations, vecMapLabelCosts, kPaths);
+
         OrientedGraph *privateDoubledG1;
         OrientedGraph *privateDoubledG2;
 
@@ -1074,22 +1192,23 @@ namespace hipop
           privateDoubledG2 = copyGraph(*doubledG2);
 
           #pragma omp for
-          for (int i = 0; i < nbOD; i++)
+          for (int i = 0; i < uniqueIndices.size(); i++)
           {
+            int idx = uniqueIndices[i];
             std::vector<pathCost> resPath1;
             std::vector<pathCost> resPath2;
 
             if (vecAvailableLabels.empty())
             {
                 // Look for shortest paths on G1
-                resPath1 = KShortestPath(*privateDoubledG1, origins[i], destinationsTwin[i], cost, {}, vecMapLabelCosts[i], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, kPaths[i], true);
+                resPath1 = KShortestPath(*privateDoubledG1, origins[idx], destinationsTwin[idx], cost, {}, vecMapLabelCosts[idx], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, nbPaths[idx], true);
                 // Look for shortest paths on G2
-                resPath2 = KShortestPath(*privateDoubledG2, origins[i], destinationsTwin[i], cost, {}, vecMapLabelCosts[i], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, kPaths[i], true);
+                resPath2 = KShortestPath(*privateDoubledG2, origins[idx], destinationsTwin[idx], cost, {}, vecMapLabelCosts[idx], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, nbPaths[idx], true);
             }
             else
             {
-                resPath1 = KShortestPath(*privateDoubledG1, origins[i], destinationsTwin[i], cost, vecAvailableLabels[i], vecMapLabelCosts[i], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, kPaths[i], true);
-                resPath2 = KShortestPath(*privateDoubledG2, origins[i], destinationsTwin[i], cost, vecAvailableLabels[i], vecMapLabelCosts[i], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, kPaths[i], true);
+                resPath1 = KShortestPath(*privateDoubledG1, origins[idx], destinationsTwin[idx], cost, vecAvailableLabels[idx], vecMapLabelCosts[idx], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, nbPaths[idx], true);
+                resPath2 = KShortestPath(*privateDoubledG2, origins[idx], destinationsTwin[idx], cost, vecAvailableLabels[idx], vecMapLabelCosts[idx], maxDiffCost, maxDistInCommon, costMultiplier, maxRetry, nbPaths[idx], true);
             }
             // Concat resPath1 and resPath2
             resPath1.insert(resPath1.end(), resPath2.begin(), resPath2.end());
@@ -1110,14 +1229,14 @@ namespace hipop
             // Keep the k best paths found
             std::sort(resPath1.begin(), resPath1.end(), [](pathCost a, pathCost b)
               { return a.second < b.second; });
-            if (resPath1.size() >= kPaths[i])
+            if (resPath1.size() >= nbPaths[idx])
             {
-                std::vector<pathCost> resPath(resPath1.begin(), resPath1.begin() + kPaths[i]);
-                res[i] = resPath;
+                std::vector<pathCost> resPath(resPath1.begin(), resPath1.begin() + nbPaths[idx]);
+                res[idx] = resPath;
             }
             else
             {
-                res[i] = resPath1;
+                res[idx] = resPath1;
             }
 
 
@@ -1131,6 +1250,27 @@ namespace hipop
       }
       if (doubledG1) delete(doubledG1);
       if (doubledG2) delete(doubledG2);
+
+      // Set shortest paths of duplicates
+      for (const auto& elem : duplicateIndices)
+      {
+          res[elem.first] = res[elem.second];
+      }
+
+      // Keep only the proper number of paths for each OD
+      for (int i = 0; i < nbOD; ++i)
+      {
+          int k = kPaths[i];
+          std::vector<pathCost> res_paths = res[i];
+          if (res_paths.size() > k)
+          {
+              std::sort(res_paths.begin(), res_paths.end(), [](pathCost a, pathCost b)
+                { return a.second < b.second; });
+              std::vector<pathCost> res_k_best_paths(res_paths.begin(), res_paths.begin() + k);
+              res[i] = res_k_best_paths;
+          }
+      }
+
       return res;
     }
 
