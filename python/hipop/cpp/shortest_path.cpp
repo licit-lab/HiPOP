@@ -27,6 +27,16 @@ void shortest_path(py::module_ &m) {
         py::arg("cost"), 
         py::arg("thread_number"), 
         py::arg("available_labels") = std::vector<setstring>());
+    m.def(
+        "parallel_dijkstra_heterogeneous_costs",
+        &hipop::parallelDijkstraHeterogeneousCosts,
+        py::arg("graph"),
+        py::arg("origins"),
+        py::arg("destinations"),
+        py::arg("map_label_costs"),
+        py::arg("costs"), 
+        py::arg("thread_number"),
+        py::arg("available_labels") = std::vector<setstring>());
     m.def("k_shortest_path", &hipop::KShortestPath);
     m.def("parallel_k_shortest_path", &hipop::parallelKShortestPath);
     m.def("yen_k_shortest_path", &hipop::YenKShortestPath);

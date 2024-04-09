@@ -54,6 +54,15 @@ namespace hipop
         int threadNumber, 
         std::vector<setstring> vecAvailableLabels = {});
 
+    std::vector<pathCost> parallelDijkstraHeterogeneousCosts(
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::string> destinations,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::vector<std::string> costs,
+        int threadNumber,
+        std::vector<setstring> vecAvailableLabels = {});
+
     std::vector<pathCost> YenKShortestPath(
         OrientedGraph &G, 
         std::string origin, 

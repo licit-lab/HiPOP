@@ -116,12 +116,13 @@ namespace hipop
     }
 
     /**
-     * @brief Find duplicated origin - destination - mapLabelCost to prevent computing
-     *        several times the same shortest paths
+     * @brief Find duplicated origin - destination - mapLabelCost - Cost to prevent
+     *        computing several times the same shortest paths
      *
      * @param origins The vector of origins
      * @param destinations The vector of destinations
      * @param vecMapLabelCosts The vector of type of cost map to choose on each label
+     * @param costs The vector of costs to consider in the shortest path algoithm
      * @return r The tuple with a vector of unique elements indices
      *         as first element,  a map of correspondance between non unique index and the unique
      *         index with the same origin - destination - mapLabelCost as second element,
@@ -132,6 +133,7 @@ namespace hipop
         const std::vector<std::string> &origins,
         const std::vector<std::string> &destinations,
         const std::vector<std::unordered_map<std::string, std::string> > &vecMapLabelCosts,
+        const std::vector<std::string> & costs,
         const std::vector<int> &kPaths)
     {
         int nbODs = origins.size();
@@ -140,13 +142,14 @@ namespace hipop
         {
             std::string o = origins[i];
             std::string d = destinations[i];
+            std::string cost = costs[i];
             std::unordered_map<std::string, std::string> mapLabelCosts = vecMapLabelCosts[i];
             std::vector<std::pair<std::string, std::string>> vecLabelCosts = std::vector<std::pair<std::string, std::string>>(mapLabelCosts.begin(), mapLabelCosts.end());
             std::sort(vecLabelCosts.begin(), vecLabelCosts.end(), [](const std::pair<std::string,std::string> &left, const std::pair<std::string,std::string> &right) {
                 return left.first < right.first;
             });
 
-            std::string ODLabelCosts = o + d;
+            std::string ODLabelCosts = o + d + cost;
             for (int j = 0; j < vecLabelCosts.size(); ++j)
             {
                 ODLabelCosts = ODLabelCosts + "-" + vecLabelCosts[j].first + ":" + vecLabelCosts[j].second;
@@ -211,13 +214,14 @@ namespace hipop
     {
         omp_set_num_threads(threadNumber);
 
+        int nbPath = origins.size();
         std::vector<int> emptyV;
         std::vector<int> uniqueIndices;
+        std::vector<std::string> costs(nbPath, cost);
         std::unordered_map<int, int> duplicateIndices;
         std::unordered_map<int, int> nbPathsPerOD;
-        tie(uniqueIndices, duplicateIndices, nbPathsPerOD) = find_duplicates(origins, destinations, vecMapLabelCosts, emptyV);
+        tie(uniqueIndices, duplicateIndices, nbPathsPerOD) = find_duplicates(origins, destinations, vecMapLabelCosts, costs, emptyV);
 
-        int nbPath = origins.size();
         std::vector<pathCost> res(nbPath);
 
         #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
@@ -231,6 +235,60 @@ namespace hipop
             else
             {
                 res[uniqueIdx] = dijkstra(G, origins[uniqueIdx], destinations[uniqueIdx], cost, vecMapLabelCosts[uniqueIdx], vecAvailableLabels[uniqueIdx]);
+            }
+        }
+
+        for (const auto& elem : duplicateIndices)
+        {
+            res[elem.first] = res[elem.second];
+        }
+
+        return res;
+    }
+
+    /**
+     * @brief Batch computation of shortest paths with openmp using the Dijkstra
+     *        algorithm and considering different costs for each path
+     * @param G The OrientedGrah used for the shortest paths
+     * @param origins The vector of origins
+     * @param destinations The vector of destinations
+     * @param vecMapLabelCosts The vector of type of cost map to choose on each label
+     * @param costs The vector of costs to consider in the shortest path algorithm
+     * @param threadNumber The number of thread for openmp
+     * @param vecAvailableLabels The vector of available labels
+     * @return std::vector<pathCost> The vector of computed shortest path
+     */
+    std::vector<pathCost> parallelDijkstraHeterogeneousCosts(
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::string> destinations,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::vector<std::string> costs,
+        int threadNumber,
+        std::vector<setstring> vecAvailableLabels)
+    {
+        omp_set_num_threads(threadNumber);
+
+        std::vector<int> emptyV;
+        std::vector<int> uniqueIndices;
+        std::unordered_map<int, int> duplicateIndices;
+        std::unordered_map<int, int> nbPathsPerOD;
+        tie(uniqueIndices, duplicateIndices, nbPathsPerOD) = find_duplicates(origins, destinations, vecMapLabelCosts, costs, emptyV);
+
+        int nbPath = origins.size();
+        std::vector<pathCost> res(nbPath);
+
+        #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
+        for (int i = 0; i < uniqueIndices.size(); i++)
+        {
+            int uniqueIdx = uniqueIndices[i];
+            if (vecAvailableLabels.empty())
+            {
+                res[uniqueIdx] = dijkstra(G, origins[uniqueIdx], destinations[uniqueIdx], costs[uniqueIdx], vecMapLabelCosts[uniqueIdx], {});
+            }
+            else
+            {
+                res[uniqueIdx] = dijkstra(G, origins[uniqueIdx], destinations[uniqueIdx], costs[uniqueIdx], vecMapLabelCosts[uniqueIdx], vecAvailableLabels[uniqueIdx]);
             }
         }
 
@@ -844,7 +902,8 @@ namespace hipop
         std::vector<int> uniqueIndices;
         std::unordered_map<int, int> duplicateIndices;
         std::unordered_map<int, int> nbPaths;
-        tie(uniqueIndices, duplicateIndices, nbPaths) = find_duplicates(origins, destinations, vecMapLabelCosts, kPaths);
+        std::vector<std::string> costs(nbODs, cost);
+        tie(uniqueIndices, duplicateIndices, nbPaths) = find_duplicates(origins, destinations, vecMapLabelCosts, costs, kPaths);
 
         #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins, destinations, kPaths) private(privateG)
         {
@@ -1181,7 +1240,8 @@ namespace hipop
         std::vector<int> uniqueIndices;
         std::unordered_map<int, int> duplicateIndices;
         std::unordered_map<int, int> nbPaths;
-        tie(uniqueIndices, duplicateIndices, nbPaths) = find_duplicates(origins, destinations, vecMapLabelCosts, kPaths);
+        std::vector<std::string> costs(nbOD, cost);
+        tie(uniqueIndices, duplicateIndices, nbPaths) = find_duplicates(origins, destinations, vecMapLabelCosts, costs, kPaths);
 
         OrientedGraph *privateDoubledG1;
         OrientedGraph *privateDoubledG2;
