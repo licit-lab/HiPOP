@@ -23,7 +23,7 @@ int main()
 
     std::vector<std::string> origins = {"0", "0", "0", "0"};
     std::vector<std::string> destinations = {"3", "3", "3", "3"};
-    std::vector<std::string> kPtahs = {4, 4, 4, 4}
+    //std::vector<std::string> kPtahs = {4, 4, 4, 4}
     std::vector<std::unordered_map<std::string, std:: string> > vecMapLabelCosts = {
         {{"CAR", "PersonalVehicle"}},
         {{"CAR", "PersonalVehicle"}},
@@ -32,7 +32,10 @@ int main()
     };
 
     //auto paths = hipop::parallelKShortestPath(G, origins, destinations, "time", vecMapLabelCosts, {}, 0.1, 0.95, 10, 10, kPaths, 4);
-    auto paths = hipop::parallelDijkstra(G, origins, destinations, vecMapLabelCosts, "time", 4, {});
+    auto paths = hipop::parallelDijkstra(G, origins, destinations, vecMapLabelCosts, "fare", 4, {});
+
+    std::cout << paths.size() << std::endl;
+    std::cout << paths[0].second << std::endl;
 
     return EXIT_SUCCESS;
 }

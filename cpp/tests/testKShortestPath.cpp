@@ -23,7 +23,9 @@ int testKShortestPath(int argc, char *argv[])
     G.AddLink("0_4", "0", "4", 11, {{"PersonalVehicle", {{"time", 14}}}}, "CAR");
     G.AddLink("4_3", "4", "3", 11, {{"PersonalVehicle", {{"time", 12}}}}, "CAR");
 
-    auto paths = hipop::KShortestPath(G, "0", "3", "time", {}, {{"CAR", "PersonalVehicle"}}, 0, 10, 4);
+    auto paths = hipop::KShortestPath(G, "0", "3", "time", {}, {{"CAR", "PersonalVehicle"}}, 5, 100, 2.2, 10, 3, false);
+    std::cout << paths.size() << std::endl;
+    std::cout << paths[0].first[0] << paths[0].first[1] << std::endl;
     assertTrue(paths.size()==3, "Did not found 3 paths");
     
 
