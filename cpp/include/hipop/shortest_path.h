@@ -9,6 +9,7 @@
 
 typedef std::set<std::string> setstring;
 typedef std::pair<std::vector<std::string>, double> pathCost;
+typedef std::unordered_map<std::string, std::string> ShortestPathsTree;
 
 namespace hipop
 {
@@ -29,6 +30,17 @@ namespace hipop
         const std::string &cost, 
         const std::unordered_map<std::string, std::string> &mapLabelCost, 
         setstring accessibleLabels = {});
+    ShortestPathsTree dijkstraSingleSource(
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
+        setstring accessibleLabels);
+    std::pair<std::vector<std::vector<int>>, std::unordered_map<int, std::string>> floydWarshall(
+        const OrientedGraph &G,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
+        setstring accessibleLabels);
     pathCost aStar(
         const OrientedGraph &G, 
         const std::string &origin, 
@@ -52,6 +64,14 @@ namespace hipop
         std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts, 
         std::string cost, 
         int threadNumber, 
+        std::vector<setstring> vecAvailableLabels = {});
+
+    std::vector<ShortestPathsTree> parallelDijkstraSingleSource(
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::string cost,
+        int threadNumber,
         std::vector<setstring> vecAvailableLabels = {});
 
     std::vector<pathCost> parallelDijkstraHeterogeneousCosts(

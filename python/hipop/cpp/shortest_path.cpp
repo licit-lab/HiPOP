@@ -18,6 +18,22 @@ void shortest_path(py::module_ &m) {
         py::arg("map_label_cost"),
         py::arg("available_labels") = setstring());
     m.def(
+        "dijkstra_single_source",
+        &hipop::dijkstraSingleSource,
+        py::arg("graph"),
+        py::arg("origin"),
+        py::arg("cost"),
+        py::arg("map_label_cost"),
+        py::arg("available_labels") = setstring());
+    m.def(
+      "floyd_warshall",
+      &hipop::floydWarshall,
+      py::arg("graph"),
+      py::arg("cost"),
+      py::arg("map_label_cost"),
+      py::arg("available_labels") = setstring()
+    );
+    m.def(
         "parallel_dijkstra", 
         &hipop::parallelDijkstra, 
         py::arg("graph"), 
@@ -26,6 +42,15 @@ void shortest_path(py::module_ &m) {
         py::arg("map_label_costs"), 
         py::arg("cost"), 
         py::arg("thread_number"), 
+        py::arg("available_labels") = std::vector<setstring>());
+    m.def(
+        "parallel_dijkstra_single_source",
+        &hipop::parallelDijkstraSingleSource,
+        py::arg("graph"),
+        py::arg("origins"),
+        py::arg("map_label_costs"),
+        py::arg("cost"),
+        py::arg("thread_number"),
         py::arg("available_labels") = std::vector<setstring>());
     m.def(
         "parallel_dijkstra_heterogeneous_costs",

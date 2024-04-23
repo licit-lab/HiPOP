@@ -17,6 +17,30 @@
 
 typedef std::pair<double, std::string> QueueItem;
 typedef std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<QueueItem>> PriorityQueue;
+typedef std::unordered_map<std::string, std::string> ShortestPathsTree;
+
+bool remove_value(PriorityQueue& pq, std::string value) {
+    std::vector<std::pair<double, std::string>> temp;
+
+    // Remove all occurrences of the value from the priority queue
+    bool found = false;
+    while (!pq.empty()) {
+        if (pq.top().second != value) {
+            temp.push_back(pq.top());
+        }
+        else {
+            found = true;
+        }
+        pq.pop();
+    }
+
+    // Reconstruct the priority queue without the removed value
+    for (const auto& item : temp) {
+        pq.push(item);
+    }
+
+    return found;
+}
 
 
 namespace hipop
@@ -113,6 +137,152 @@ namespace hipop
             
         }
         return path;
+    }
+
+    /**
+     * @brief Compute the shortest paths between origin and all other vertices of the
+     *        graph using the Dijkstra algorithm
+     *
+     * @param G The OrientedGrah used for the shortest path
+     * @param origin The origin
+     * @param cost The costs to consider in the shortest path algorithm
+     * @param mapLabelCost The type of cost map to choose on each label (mulitple set of costs can be defined on a Link)
+     * @param accessibleLabels The set of accessible label
+     * @return prev The shortest paths tree from origin
+     */
+    ShortestPathsTree dijkstraSingleSource(
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
+        setstring accessibleLabels)
+    {
+
+        PriorityQueue pq;
+        std::unordered_map<std::string, double> dist;
+        ShortestPathsTree prev;
+        prev.reserve(G.mnodes.size());
+        dist.reserve(G.mnodes.size());
+        double inf = std::numeric_limits<double>::infinity();
+        for (const auto keyVal : G.mnodes)
+        {
+            dist[keyVal.first] = inf;
+            if (keyVal.first != origin)
+            {
+                pq.push(make_pair(inf, keyVal.first));
+            }
+        }
+        pq.push(make_pair(0, origin));
+        dist[origin] = 0;
+        prev[origin] = "";
+
+        while (!pq.empty())
+        {
+            QueueItem current = pq.top();
+            pq.pop();
+            std::string u = current.second;
+
+            try
+            {
+                for (const auto link : G.mnodes.at(u)->getExits(prev[u]))
+                {
+                    if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
+                    {
+                        std::string neighbor = link->mdownstream;
+                        double new_dist = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+
+                        if (dist[neighbor] > new_dist)
+                        {
+                            dist[neighbor] = new_dist;
+                            bool found = remove_value(pq, neighbor);
+                            if (!found)
+                            {
+                                std::cerr << "There must be negative cost cycles... Invalid call of Dijkstra." << std::endl;
+                            }
+                            pq.push(QueueItem(new_dist, neighbor));
+                            prev[neighbor] = u;
+                        }
+                    }
+                }
+            }
+            catch(const std::out_of_range& e)
+            {
+                std::cerr <<  "The node " << u << " does not belong to the graph \n";
+            }
+      }
+
+
+      return prev;
+    }
+
+    /**
+     * @brief Compute the shortest paths between all pairs of vertices
+     *
+     * @param G The OrientedGrah
+     * @param cost The costs to consider in the shortest path algorithm
+     * @param mapLabelCost The type of cost map to choose on each label (mulitple set of costs can be defined on a Link)
+     * @param accessibleLabels The set of accessible label
+     * @return prev The shortest paths tree
+     */
+    std::pair<std::vector<std::vector<int>>, std::unordered_map<int, std::string>> floydWarshall(
+        const OrientedGraph &G,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
+        setstring accessibleLabels)
+    {
+        int V = G.mnodes.size();
+
+        // Map nodes ids with integers
+        std::unordered_map<std::string, int> nodevMap;
+        std::unordered_map<int, std::string> vnodeMap;
+        int v = 0;
+        for (const auto& pair : G.mnodes)
+        {
+            nodevMap.insert({pair.first, v});
+            vnodeMap.insert({v, pair.first});
+            ++v;
+        }
+
+        // Initialize dist and prev tables
+        double inf = std::numeric_limits<double>::infinity();
+        int null = V+1;
+        std::vector<std::vector<double>> dist(V, std::vector<double>(V, inf));
+        std::vector<std::vector<int>> prev(V, std::vector<int>(V, null));
+        for (const auto& pair : G.mlinks)
+        {
+            Link*link = pair.second;
+            if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
+            {
+                std::string u = link->mupstream;
+                std::string v = link->mdownstream;
+                dist[nodevMap.at(u)][nodevMap.at(v)] = link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+                prev[nodevMap.at(u)][nodevMap.at(v)] = nodevMap.at(u);
+            }
+        }
+        for (int v = 0; v < V; ++v)
+        {
+            dist[v][v] = 0;
+            prev[v][v] = v;
+        }
+
+        // Proceed
+        for (int k = 0; k < V; ++k)
+        {
+            for (int i = 0; i < V; ++i)
+            {
+                for (int j = 0; j < V; ++j)
+                {
+                    if (dist[i][k] != inf && dist[k][j] != inf && dist[i][j] > dist[i][k] + dist[k][j])
+                    {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                        prev[i][j] = prev[k][j];
+                    }
+                }
+            }
+        }
+
+        return std::make_pair(prev, vnodeMap);
+
     }
 
     /**
@@ -241,6 +411,47 @@ namespace hipop
         for (const auto& elem : duplicateIndices)
         {
             res[elem.first] = res[elem.second];
+        }
+
+        return res;
+    }
+
+    /**
+     * @brief Computation of shortest paths from each origin provided to all other
+     *        vertices in the graph
+     *
+     * @param G The OrientedGrah used for the shortest paths
+     * @param origins The vector of origins
+     * @param vecMapLabelCosts The vector of type of cost map to choose on each label
+     * @param cost The cost to consider in the shortest path algorithm
+     * @param threadNumber The number of thread for openmp
+     * @param vecAvailableLabels The vector of available labels
+     * @return std::vector<ShortestPathsTree> The vector of computed shortest paths trees
+     */
+    std::vector<ShortestPathsTree> parallelDijkstraSingleSource(
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::string cost,
+        int threadNumber,
+        std::vector<setstring> vecAvailableLabels)
+    {
+        omp_set_num_threads(threadNumber);
+
+        int nbSPTs = origins.size();
+        std::vector<ShortestPathsTree> res(nbSPTs);
+
+        #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
+        for (int i = 0; i < nbSPTs; i++)
+        {
+            if (vecAvailableLabels.empty())
+            {
+                res[i] = dijkstraSingleSource(G, origins[i], cost, vecMapLabelCosts[i], {});
+            }
+            else
+            {
+                res[i] = dijkstraSingleSource(G, origins[i], cost, vecMapLabelCosts[i], vecAvailableLabels[i]);
+            }
         }
 
         return res;
