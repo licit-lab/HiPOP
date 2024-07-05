@@ -141,6 +141,7 @@ namespace hipop
         void UpdateLinkCosts(std::string lid, mapcosts _costs);
         void UpdateCosts(std::unordered_map<std::string, mapcosts> maplinkcosts);
         double getLength(std::string _up, std::string _down);
+        std::vector<std::string> GetLinksWithoutCost(std::string cost, const std::unordered_map<std::string, std::string> &mapLabelCost);
 
         void ShowNodes();
         void ShowLinks();
@@ -165,9 +166,7 @@ namespace hipop
 
     };
 
-
     OrientedGraph* copyGraph(const OrientedGraph &G);
-
 
     OrientedGraph* mergeOrientedGraph(std::vector<const OrientedGraph*> allGraphs);
     

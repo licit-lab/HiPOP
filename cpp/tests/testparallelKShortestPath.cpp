@@ -27,7 +27,7 @@ int testparallelKShortestPath(int argc, char *argv[])
 
     std::vector<std::string> origins = {"0", "0", "0", "0"};
     std::vector<std::string> destinations = {"3", "3", "3", "3"};
-    std::vector<std::string> kPaths = {4, 4, 4, 4};
+    std::vector<int> kPaths = {4, 4, 4, 4};
     std::vector<std::unordered_map<std::string, std:: string> > vecMapLabelCosts = {
         {{"CAR", "PersonalVehicle"}},
         {{"CAR", "PersonalVehicle"}},
@@ -35,7 +35,7 @@ int testparallelKShortestPath(int argc, char *argv[])
         {{"CAR", "PersonalVehicle"}}
     };
 
-    auto paths = hipop::parallelKShortestPath(G, origins, destinations, "time", vecMapLabelCosts, {}, 0.1, 0.95, 10, 10, kPaths, 4);
+    auto paths = hipop::parallelKShortestPath(G, origins, destinations, "time", vecMapLabelCosts, {}, 0.1, 0.95, 1.2, 10, kPaths, 4);
 
 
     return 0;

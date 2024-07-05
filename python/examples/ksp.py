@@ -1,5 +1,5 @@
 from importlib.resources import path
-from hipop.graph import OrientedGraph
+from hipop.graph import OrientedGraph, link_to_dict
 from hipop.shortest_path import parallel_k_shortest_path, compute_path_length 
 from pprint import pprint
 
@@ -17,6 +17,8 @@ G.add_link("1_2", "1", "2", 4,{'M':{'travel_time':11}},'metro')
 G.add_link("3_2", "3", "2", 5, {'PV':{'travel_time':20}},'pv_layer')
 G.add_link("1_3", "1", "3", 1, {'PV':{'travel_time':8}},'pv_layer')
 
+
+
 N = int(1e6)
 N=3
 origins = ["0" for _ in range(N)]
@@ -31,20 +33,23 @@ s['pv_layer']='PV'
 services = [s for _ in range(N)]
 
 # Number of k shortest paths to calculate
-kpath=2
+kpath=[2 for _ in range(N)]
 
 # Number of threads to use
 nthread=8
 
-# Minimal distance difference between the k-rd shortest path and the shortest path
-min_dist=0
+# The maximal difference between the cost of the first computed shortest path and the cost of the next ones
+min_dist=2
 
-# Maximal distance difference between the k-rd shortest path and the shortest path
-max_dist=5
+# The maximal distance in common between the first shortest path found and the next ones
+max_dist=0.8
 
-paths = parallel_k_shortest_path(G, origins, destinations, 'travel_time',services, layers,min_dist,max_dist,kpath,nthread)
-pprint(paths)
+links = G.get_links_without_cost('travel_time',{'pv_layer':'PV','metro':'M'})
 
-print('Lengths: ',compute_path_length(G,paths[0][0][0]),compute_path_length(G,paths[0][1][0]))
+if len(links) == 0:
+    paths = parallel_k_shortest_path(G, origins, destinations, 'travel_time',services, layers,min_dist,max_dist,1.5, 1000, kpath,nthread)
+    pprint(paths)
+
+    print('Lengths: ',compute_path_length(G,paths[0][0][0]),compute_path_length(G,paths[0][1][0]))
 
                                                      

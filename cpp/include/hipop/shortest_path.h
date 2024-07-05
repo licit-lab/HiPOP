@@ -9,6 +9,7 @@
 
 typedef std::set<std::string> setstring;
 typedef std::pair<std::vector<std::string>, double> pathCost;
+typedef std::unordered_map<std::string, std::string> ShortestPathsTree;
 
 namespace hipop
 {
@@ -29,6 +30,17 @@ namespace hipop
         const std::string &cost, 
         const std::unordered_map<std::string, std::string> &mapLabelCost, 
         setstring accessibleLabels = {});
+    ShortestPathsTree dijkstraSingleSource(
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
+        setstring accessibleLabels);
+    std::pair<std::vector<std::vector<int>>, std::unordered_map<int, std::string>> floydWarshall(
+        const OrientedGraph &G,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
+        setstring accessibleLabels);
     pathCost aStar(
         const OrientedGraph &G, 
         const std::string &origin, 
@@ -54,6 +66,23 @@ namespace hipop
         int threadNumber, 
         std::vector<setstring> vecAvailableLabels = {});
 
+    std::vector<ShortestPathsTree> parallelDijkstraSingleSource(
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::string cost,
+        int threadNumber,
+        std::vector<setstring> vecAvailableLabels = {});
+
+    std::vector<pathCost> parallelDijkstraHeterogeneousCosts(
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::string> destinations,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::vector<std::string> costs,
+        int threadNumber,
+        std::vector<setstring> vecAvailableLabels = {});
+
     std::vector<pathCost> YenKShortestPath(
         OrientedGraph &G, 
         std::string origin, 
@@ -71,7 +100,7 @@ namespace hipop
         const std::unordered_map<std::string, std::string> &mapLabelCost,
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         int kPath,
         bool intermodal);
@@ -85,7 +114,7 @@ namespace hipop
         const std::vector<setstring> accessibleLabels, 
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         const std::vector<int> &kPaths, 
         int threadNumber);
@@ -100,7 +129,7 @@ namespace hipop
         std::pair<std::unordered_set<std::string>, std::unordered_set<std::string>> pairMandatoryLabels,
         double maxDiffCost,
         double maxDistInCommon,
-        int costMultiplier,
+        double costMultiplier,
         int maxRetry,
         std::vector<int> kPaths,
         std::vector<setstring> vecAvailableLabels = {});
