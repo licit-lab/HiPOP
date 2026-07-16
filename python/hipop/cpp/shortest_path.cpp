@@ -85,6 +85,24 @@ void shortest_path(py::module_ &m) {
         py::arg("max_retry"),
         py::arg("nb_paths"),
         py::arg("available_labels") = std::vector<setstring>());
+    m.def(
+        "multi_dest_dijkstra", 
+        &hipop::multiDestDijkstra, 
+        py::arg("graph"), 
+        py::arg("origin"), 
+        py::arg("cost"),
+        py::arg("map_label_cost"),
+        py::arg("available_labels") = setstring());
+    m.def(
+        "parallel_multi_dest_dijkstra", 
+        &hipop::parallelMultiDestDijkstra, 
+        py::arg("graph"), 
+        py::arg("origins"), 
+        py::arg("cost"), 
+        py::arg("map_label_costs"), 
+        py::arg("thread_number"), 
+        py::arg("available_labels") = std::vector<setstring>());
+
 }
 
 }

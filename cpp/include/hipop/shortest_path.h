@@ -134,4 +134,30 @@ namespace hipop
         std::vector<int> kPaths,
         std::vector<setstring> vecAvailableLabels = {});
 
+    std::unordered_map<std::string, pathCost> multiDestDijkstra(
+        const OrientedGraph &G, 
+        const std::string &origin, 
+        const std::string &cost, 
+        const std::unordered_map<std::string, std::string> &mapLabelCost, 
+        setstring accessibleLabels = {});
+
+    std::unordered_map<std::string, std::vector<std::string>> restorePaths(
+        const std::string &rootNode,
+        std::unordered_map<std::string, std::string> &prev);
+
+    std::vector<std::string> getRootPath(
+        const std::string &currentNode, 
+        const std::string &rootNode,
+        std::unordered_map<std::string, std::string> &prev,
+        std::unordered_map<std::string, std::vector<std::string>> &paths);
+        
+    std::unordered_map<std::string, std::unordered_map<std::string, pathCost>> parallelMultiDestDijkstra(
+        const OrientedGraph &G,
+        const std::vector<std::string> &origins, 
+        const std::string &cost, 
+        const std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        int threadNumber,
+        const std::vector<setstring> accessibleLabels = {});
+
+
 } // namespace hipop

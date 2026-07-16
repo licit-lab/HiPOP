@@ -1549,4 +1549,236 @@ namespace hipop
       return res;
     }
 
+    /**
+     * @brief Compute the shortest path between origin and every possible destination using the Dijkstra algorithm
+     * 
+     * @param G The OrientedGrah used for the shortest path
+     * @param origin The origin 
+     * @param cost The costs to consider in the shortest path algorithm
+     * @param mapLabelCost The type of cost map to choose on each label (mulitple set of costs can be defined on a Link)
+     * @param accessibleLabels The set of accessible label
+     * @return std::unordered_map<std::string, pathCost> The map of shortest paths for each destination
+     */
+    std::unordered_map<std::string, pathCost> multiDestDijkstra(
+        const OrientedGraph &G, 
+        const std::string &origin, 
+        const std::string &cost, 
+        const std::unordered_map<std::string, std::string> &mapLabelCost, 
+        setstring accessibleLabels)
+    {
+        int nbPath = G.mnodes.size();
+        //std::vector<pathCost> res(nbPath-1);
+        std::unordered_map<std::string, pathCost> res(nbPath-1);
+
+        PriorityQueue pq;
+        
+        std::unordered_map<std::string, double> dist;
+        std::unordered_map<std::string, std::string> prev;
+        prev.reserve(G.mnodes.size());
+        dist.reserve(G.mnodes.size());
+        double inf = std::numeric_limits<double>::infinity();
+        for (const auto keyVal : G.mnodes)
+        {
+            dist[keyVal.first] = inf;
+        }
+        pq.push(make_pair(0, origin));
+        dist[origin] = 0;
+
+        prev[origin] = "";
+        // Explore full graph
+        while (!pq.empty())
+        {
+            QueueItem current = pq.top();
+            pq.pop();
+            std::string u = current.second;
+
+            for (const auto link : G.mnodes.at(u)->getExits(prev[u]))
+            {
+                if (accessibleLabels.empty() || accessibleLabels.find(link->mlabel) != accessibleLabels.end())
+                {
+                    std::string neighbor = link->mdownstream;
+                    double new_dist = dist[u] + link->mcosts[mapLabelCost.at(link->mlabel)][cost];
+
+                    if (dist[neighbor] > new_dist)
+                    {
+                        dist[neighbor] = new_dist;
+                        pq.push(QueueItem(new_dist, neighbor));
+                        prev[neighbor] = u;
+                    }
+                }
+            }
+        }
+        //for (const auto keyVal: prev){
+        //    std::cout << keyVal.first << ": " << keyVal.second <<"\n";
+        //}
+        // Compute all paths
+        std::unordered_map<std::string, std::vector<std::string>> paths = restorePaths(origin, prev);
+        // Extract path results
+        int i = 0;
+        for (const auto u : G.mnodes) //for path in paths and lists 
+        {
+            if (u.first != origin)
+            {   
+                // initialize current path
+                pathCost path;
+                // initialise path cost
+                path.second = dist[u.first];
+                // get path
+                path.first = paths[u.first];
+                res[u.first] = path;
+                i++;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * @brief Based on the exploration of the graph within multiDestDijkstra, use the predecessor array prev to reconstruct efficiently all shortest paths.
+     * 
+     * @param rootNode The root node or origin of the multiDestDijkstra computation
+     * @param prev The predecessor array
+     * @return std::unordered_map<std::string, std::vector<std::string>> The map of paths to each destination
+     */
+    std::unordered_map<std::string, std::vector<std::string>> restorePaths(
+        const std::string &rootNode,
+        std::unordered_map<std::string, std::string> &prev
+    ){
+        int nbPath = prev.size();
+        std::unordered_map<std::string, std::vector<std::string>> paths(nbPath-1);
+        paths.reserve(nbPath-1);
+        for(const auto &currentNode: prev) {
+            std::string leave = currentNode.first;
+            if (leave!=rootNode){
+                getRootPath(leave, rootNode, prev, paths);
+            }
+        }
+        return paths;
+    }
+
+    /**
+     * @brief Recursive function to retrieve the shortest path between the root node and the currently considered node
+     * 
+     * @param currentNode The current destination considered
+     * @param rootNode The root node or origin of the multiDestDijkstra computation
+     * @param prev The predecessor array
+     * @param paths The map of paths to each destination
+     * @return std::vector<std::string> the shortest path between rootNode and currentNode
+     */
+    std::vector<std::string> getRootPath(
+        const std::string &currentNode, 
+        const std::string &rootNode,
+        std::unordered_map<std::string, std::string> &prev,
+        std::unordered_map<std::string, std::vector<std::string>> &paths)
+    {
+        std::vector<std::string> pathCurrent;
+        pathCurrent.reserve(prev.size());
+        if(paths.find(currentNode) != paths.end()){
+            // If path is known already
+            pathCurrent = paths[currentNode];
+        } else {
+            //Get previous node 
+            std::string previousNode = prev[currentNode];
+            if (previousNode == rootNode){
+                //Initialize path
+                pathCurrent.push_back(rootNode);
+            } else {
+                std::vector<std::string> pathPrevious = getRootPath(previousNode, rootNode, prev, paths);
+                //Create current path from pathPrevious
+                pathCurrent = pathPrevious;
+            }
+            //Append current node at the end
+            pathCurrent.push_back(currentNode);
+            //Save path
+            paths[currentNode] = pathCurrent;
+        }
+        return pathCurrent;
+    }
+
+    /**
+     * @brief Batch computation of Dijkstra paths for all destination nodes using openmp, each thread has its own deep copy of the OrientedGraph to ensure that the increase of the cost do not collapse with the other threads
+     * 
+     * @param G The OrientedGraph on which we compute the paths
+     * @param origins The origins
+     * @param destinations The destinations
+     * @param cost The cost to consider
+     * @param vecMapLabelCosts The vector of type of cost map to choose on each label
+     * @param accessibleLabels The vector set of accessible label
+     * @param minDist The minimal distance difference
+     * @param maxDist The maximal distance difference
+     * @param kPath The number of path to compute
+     * @param threadNumber Number of threads to use
+     * @return std::vector<std::vector<pathCost>> 
+     */
+    std::unordered_map<std::string, std::unordered_map<std::string, pathCost>> parallelMultiDestDijkstra(
+        const OrientedGraph &G, 
+        const std::vector<std::string> &origins, 
+        const std::string &cost,
+        const std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        int threadNumber,
+        const std::vector<setstring> accessibleLabels)
+    {
+        omp_set_num_threads(threadNumber);
+        int nbOD = origins.size();
+
+        std::unordered_map<std::string, std::unordered_map<std::string, pathCost>> res(nbOD);
+        res.reserve(nbOD);
+
+        OrientedGraph *privateG;
+
+        #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins) private(privateG)
+        {
+            privateG = copyGraph(G);
+
+            /*
+            #pragma omp for
+            for (int i = 0; i < nbOD; i++)
+            {
+                if (accessibleLabels.empty())
+                {
+                    res[origins[i]] = multiDestDijkstra(*privateG, origins[i], cost, vecMapLabelCosts[i], {});
+                }
+                else
+                {
+                    res[origins[i]] = multiDestDijkstra(*privateG, origins[i], cost, vecMapLabelCosts[i], accessibleLabels[i]);
+                }
+            }
+            */
+
+
+            
+            int q = 50;
+            int max_int = nbOD/q;
+            #pragma omp for
+            //for (int i = 0; i < nbOD; i++)
+            for (int k = 0; k<=max_int; k+=1)
+            {
+                for (int i=k*q; i<(k+1)*q; i++){
+                    if (i<nbOD){
+                        if (accessibleLabels.empty())
+                        {
+                            res[origins[i]] = multiDestDijkstra(*privateG, origins[i], cost, vecMapLabelCosts[i], {});
+                        }
+                        else
+                        {
+                            res[origins[i]] = multiDestDijkstra(*privateG, origins[i], cost, vecMapLabelCosts[i], accessibleLabels[i]);
+                        }
+                    }
+                }
+            }    
+        
+
+
+
+            // Not sure if the omp critical is necessary
+            #pragma omp critical
+            {
+                delete privateG;
+            }
+
+        }
+        
+        return res;
+    }
+
+
 } // namespace hipop
