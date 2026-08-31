@@ -4,6 +4,10 @@
 # Python bytecode directories
 __pycache__/
 
+# Output directories for Python distribution files (wheels & source distributions)
+/dist/
+/wheelhouse/
+
 # Python virtual environments (usual names)
 env/
 venv/

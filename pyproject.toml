@@ -18,9 +18,12 @@ build = [ # Must be maintained identical to "build-system".requires
     "scikit-build-core >= 1.0",
     "pybind11", # TODO pybind11 version requirements?
 ]
+test = [ # Must be maintained identical to tool.cibuildwheel."test-requires"
+    "pytest >= 9.0",
+]
 dev = [
     { include-group = "build" },
-    "pytest >= 9.0",
+    { include-group = "test" },
 ]
 
 [build-system]
@@ -41,3 +44,32 @@ editable.rebuild = true
 HIPOP_WITH_PYTHON = "ON"
 HIPOP_WITH_TESTS = "OFF"
 HIPOP_WITH_EXAMPLES = "OFF"
+
+[tool.cibuildwheel]
+build = [ # Build Linux + Win for x64, and MacOS for ARM64. TODO is it enough?
+    "*-manylinux_x86_64",
+    "*-win_amd64",
+    "*-macosx_arm64",
+]
+skip = [ # Exclude non-standard Python interpreters and free-threaded versions of the standard interpreter.
+    "cp3??t-*", # Free-threaded standard interpreter (https://docs.python.org/3/glossary.html#term-free-threading).
+    "pp*",      # PyPy interpreter (https://pypy.org/).
+    "gp*",      # GraalPy interpreter (https://graalpy.org/).
+]
+test-requires = [ # Must be maintained identical to "dependency-groups".test
+    "pytest >= 9.0",
+]
+test-command = "pytest {project}"
+
+[tool.cibuildwheel.linux]
+manylinux-x86_64-image = "manylinux_2_28"
+
+[tool.cibuildwheel.macos]
+# AppleClang has no bundled OpenMP: install libomp and point CMake at it via OpenMP_ROOT.
+# `delocate` then vendors libomp.dylib into the wheel.
+before-all = "brew install libomp"
+environment = { OpenMP_ROOT = "$(brew --prefix libomp)", MACOSX_DEPLOYMENT_TARGET = "10.15" }
+
+[tool.cibuildwheel.windows]
+# Force-bundle the MSVC OpenMP runtime (vcomp140.dll) so the wheel is self-contained.
+repair-wheel-command = "delvewheel repair --add-dll vcomp140.dll -w {dest_dir} {wheel}"
