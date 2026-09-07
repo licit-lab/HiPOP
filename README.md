@@ -38,7 +38,8 @@ or try the local build installation method.
 This method requires the following components to be available on your system:
 
 - C++ compiler that supports C++17 and [OpenMP](https://www.openmp.org/)
-- [CMake](https://cmake.org/)
+- [CMake](https://cmake.org/) ≥ 3.19
+- Python ≥ 3.10
 
 Then, here is the local build install procedure:
 
@@ -82,7 +83,7 @@ Remarks:
   conda activate hipop-dev
   ```
   Please note that the use of this Conda environment is optional. HiPOP can be used with regular
-  (non-Conda) set-ups.
+  (non-Conda) setups.
 
 - If you are using MacOS and the Apple Clang C++ compiler, please note that OpenMP
   may not be available by default. You may install it with:
