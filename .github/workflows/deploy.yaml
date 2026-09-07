@@ -1,0 +1,105 @@
+name: Deploy to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Trigger on version tags like v1.2.3
+
+jobs:
+
+  check-version:
+    name: Check git tag
+    runs-on: ubuntu-slim
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Ensure git tag corresponds to project version
+        run: |
+          project_version="v$(tr -d '[:space:]' < VERSION.txt)"
+          echo "Git tag = [$GITHUB_REF_NAME]"
+          echo "Project version = [$project_version]"
+          if [[ "$GITHUB_REF_NAME" != "$project_version" ]]; then
+            echo "Mismatch between git tag and project version (VERSION.txt), aborting deployment..."
+            exit 1
+          fi
+
+  build-wheels:
+    name: Build wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs:
+      - check-version
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: # See https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+          - ubuntu-latest  # Arch: x64
+          - windows-latest # Arch: x64
+          - macos-14       # Arch: arm64
+          # Do not use the latest macOS runner to ensure backward compatibility.
+          # See comment on MACOSX_DEPLOYMENT_TARGET in pyproject.toml for more details.
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x' # The exact Python version is not important here.
+
+      - name: Build wheels
+        run: |
+          pip install --group distrib
+          python -m cibuildwheel
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
+  build-sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    needs:
+      - check-version
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x' # The exact Python version is not important here.
+
+      - name: Build sdist
+        run: |
+          pip install --group distrib
+          python -m build --sdist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: ./dist/*.tar.gz
+
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs:
+      - check-version
+      - build-wheels
+      - build-sdist
+
+    environment:
+      name: pypi-env
+      url: https://pypi.org/project/HiPOP/
+
+    permissions:
+      id-token: write # Required for authentication through OIDC.
+
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

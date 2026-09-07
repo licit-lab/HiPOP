@@ -4,23 +4,31 @@
 # Python bytecode directories
 __pycache__/
 
-# Python virtual environments (usual names)
-env/
-venv/
-.env/
-.venv/
-env[_\-]*/
-venv[_\-]*/
-.env[_\-]*/
-.venv[_\-]*/
+# Temporary/cache directories created by miscellaneous development tools
+/.pytest_cache/
 
-# CMake build directories (usual names)
-build/
-build[_\-]*/
+# Output directories for Python distribution files (wheels & source distributions)
+/dist/
+/wheelhouse/
+
+# Python virtual environments (usual names), expected only in the root directory
+/env/
+/venv/
+/.env/
+/.venv/
+/env[_\-]*/
+/venv[_\-]*/
+/.env[_\-]*/
+/.venv[_\-]*/
+
+# CMake build directories (usual names), expected only in the root directory
+/build/
+/build[_\-]*/
 
 # MacOS files
 .DS_Store
 
 # IDE files
-.vscode/
-.idea/
+.vscode
+.idea
+.ipynb_checkpoints

@@ -1,0 +1,131 @@
+[project]
+name = "HiPOP"
+dynamic = ["version"] # Version number is defined in file VERSION.txt.
+description = "High Performance Optimal Path module"
+readme = "README.md"
+requires-python = ">= 3.10"
+license = "LGPL-3.0-only"
+license-files = ["LICENSE"]
+maintainers = [
+    { name = "Cécile Becarie", email = "cecile.becarie@univ-eiffel.fr" },
+]
+keywords = [
+    "graph",
+    "graph-theory",
+    "shortest-path",
+    "dijkstra",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10", # Oldest supported version (must be kept consistent with `ci.yaml`).
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14", # Most recent supported version (must be kept consistent with `ci.yaml`).
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Repository = "https://github.com/EMob-Lab/HiPOP"
+Issues = "https://github.com/EMob-Lab/HiPOP/issues"
+
+[dependency-groups]
+build = [ # Dependencies needed for build tasks. Must be kept identical to "build-system".requires
+    "dynamic-metadata >= 0.5",
+    "pybind11 >= 3.1",
+    "scikit-build-core >= 1.0",
+]
+test = [ # Dependencies needed for test tasks. Must be kept identical to tool.cibuildwheel."test-requires"
+    "pytest >= 9.1",
+]
+dev = [ # All dependencies needed for development tasks.
+    { include-group = "build" },
+    { include-group = "test" },
+]
+distrib = [ # Dependencies needed to build distribution files (wheels & source distributions).
+    "build >= 1.6",
+    "cibuildwheel >= 4.2",
+]
+
+
+# ------------------------------------------------------------------------------
+# Configuration of the build
+
+[build-system]
+requires = [ # Must be kept identical to "dependency-groups".build
+    "dynamic-metadata >= 0.5",
+    "pybind11 >= 3.1",
+    "scikit-build-core >= 1.0",
+]
+build-backend = "scikit_build_core.build"
+
+[[tool.dynamic-metadata]]
+provider = "dynamic_metadata.from_file"
+field = "version"
+path = "VERSION.txt"
+
+[tool.scikit-build]
+wheel.packages = ["python/hipop"] # Location of the pure Python package to include in the wheel...
+wheel.exclude = [
+    "**/*.cpp",                   # ... but the C++ sources of the wrapper must be excluded...
+    "**/*.py.template",           # ... and so are the templates of the dynamically-generated Python files.
+]
+build-dir = "build-scikit"
+editable.verbose = true
+editable.rebuild = true
+
+# By default, the Python wrapper is built with cmake build type "Release".
+# Use an environment variable to override this if necessary:
+# `export CMAKE_BUILD_TYPE=<Debug|RelWithDebInfo|Release|...>`
+#
+# For more details on how to configure CMake variables from scikit-build-core, see:
+# https://scikit-build-core.readthedocs.io/en/latest/configuration/index.html#configuring-cmake-arguments-and-defines
+
+[tool.scikit-build.cmake.define]
+HIPOP_WITH_PYTHON = "ON"
+HIPOP_WITH_TESTS = "OFF"
+HIPOP_WITH_EXAMPLES = "OFF"
+
+[[tool.scikit-build.generate]]
+path = "hipop/__init__.py"
+template-path = "python/hipop/__init__.py.template"
+
+
+# ------------------------------------------------------------------------------
+# Configuration of distribution file generation wheels & source distributions)
+
+[tool.cibuildwheel]
+build = [
+    "*-manylinux_x86_64",
+    "*-win_amd64",
+    "*-macosx_arm64",
+]
+skip = [
+    "cp3??t-*", # Free-threaded standard interpreter (see https://docs.python.org/3/glossary.html#term-free-threading)
+]
+test-requires = [ # Must be kept identical to "dependency-groups".test
+    "pytest >= 9.1",
+]
+test-command = "pytest {project}"
+
+[tool.cibuildwheel.linux]
+manylinux-x86_64-image = "manylinux_2_28"
+
+[tool.cibuildwheel.macos]
+before-all = "brew install libomp"
+environment = { OpenMP_ROOT = "$(brew --prefix libomp)", MACOSX_DEPLOYMENT_TARGET = "14" }
+#
+# MACOSX_DEPLOYMENT_TARGET = Oldest MacOS version supported by the generated wheels.
+# The version of the MacOS runner must be chosen accordingly.
+#
+# FIXME The availability of runners with "old" MacOS version on GitHub is not ensured,
+# which limits the backward compatibility of the wheels produced with the current configuration.

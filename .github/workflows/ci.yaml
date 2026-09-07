@@ -1,0 +1,75 @@
+name: Continuous integration checks
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Manual trigger
+
+jobs:
+
+  build-and-test:
+    name: Build & test (py ${{ matrix.python-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: # See https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+          - ubuntu-latest  # Arch: x64
+          - windows-latest # Arch: x64
+          - macos-latest   # Arch: arm64
+        python-version:
+          - '3.10' # Oldest supported version (must be kept consistent with the classifiers in `pyproject.toml`).
+          - '3.14' # Most recent supported version (must be kept consistent with the classifiers in `pyproject.toml`).
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install OpenMP (macOS only)
+        if: runner.os == 'macOS'
+        # AppleClang has no OpenMP by default, thus it must be installed separately.
+        # The environment variable OpenMP_ROOT is then exported for subsequent steps
+        # (CMake uses this variable as a search hint).
+        run: |
+          brew install libomp
+          echo "OpenMP_ROOT=$(brew --prefix libomp)" >> "$GITHUB_ENV"
+
+      - name: C++ core library - Configure
+        run: cmake -S . -B build-cpponly -G Ninja
+
+      - name: C++ core library - Build
+        run: cmake --build build-cpponly
+
+      - name: C++ core library - Run tests
+        run: ctest --test-dir build-cpponly --output-on-failure --no-tests=error
+
+      - name: Python wrapper - Build & install
+        run: pip install --group dev .
+
+      - name: Python wrapper - Run tests
+        run: pytest
+
+  # This final job acts as a gate to ensure all the previous jobs have succeeded.
+  # It is provided to be registered as a status check for pull requests.
+  ci-passed:
+    name: CI checks all OK
+    runs-on: ubuntu-slim
+    if: always()
+    needs:
+      - build-and-test
+
+    steps:
+      - name: Ensure all CI jobs passed
+        run: |
+          for result in ${{ join(needs.*.result, ' ') }}; do
+            if [[ "$result" != "success" ]]; then
+              echo "At least one CI job did not succeed."
+              exit 1
+            fi
+          done
+          echo "All CI jobs succeeded."
