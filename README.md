@@ -17,10 +17,10 @@ It is composed of:
 
 This is the recommended (and most simple!) method to install HiPOP:
 a prebuilt distribution adapted to your Python version and OS / system architecture
-is downloaded from [PyPI](https://pypi.org/project/scisoftdev-tmp-HiPOP).
+is downloaded from [PyPI](https://pypi.org/project/HiPOP/).
 
 ```shell
-pip install scisoftdev-tmp-HiPOP # TODO change package name (and links in the whole page)
+pip install hipop
 ```
 
 This installation method requires your OS / system architecture to be one of these:
@@ -28,8 +28,7 @@ This installation method requires your OS / system architecture to be one of the
 - Linux on x86_64 architecture (i.e. Intel/AMD CPU)
 - MacOS (≥ 14 Sonoma) on ARM64 architecture (i.e. Apple M* CPU)
 
-The exact list of prebuilt distributions is available on
-https://pypi.org/project/scisoftdev-tmp-HiPOP/#files.
+The exact list of prebuilt distributions is available on https://pypi.org/project/HiPOP/#files.
 If none of them matches your environment, please contact the package maintainers,
 or try the local build installation method.
 

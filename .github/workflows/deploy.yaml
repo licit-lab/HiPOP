@@ -90,7 +90,7 @@ jobs:
 
     environment:
       name: pypi-env
-      url: https://pypi.org/project/scisoftdev-tmp-HiPOP # TODO fix project name in URL
+      url: https://pypi.org/project/HiPOP/
 
     permissions:
       id-token: write # Required for authentication through OIDC.
