@@ -17,3 +17,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Turn all compiler warnings into errors, unless otherwise specified.
 # Remark: this requires CMake >= 3.24.
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+
+# Enable compiler warnings.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+
+    # Reference: https://learn.microsoft.com/en-us/cpp/build/reference/compiler-option-warning-level
+    add_compile_options(
+        /W4  # Recommended default setting
+    )
+
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|.*Clang")
+
+    # Reference: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+    add_compile_options(
+        -Wall       # Recommended default setting
+        -Wextra     # Additional warnings, also recommended by default
+        -Wpedantic  # Enforce strict ISO C++ compliance
+    )
+
+endif()
