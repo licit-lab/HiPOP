@@ -3,7 +3,7 @@
 #include <hipop/graph.h>
 
 
-int testCopyGraph(int argc, char *argv[])
+int testCopyGraph(int, char**)
 {
     hipop::OrientedGraph G;
 

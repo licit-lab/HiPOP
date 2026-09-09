@@ -5,7 +5,7 @@
 
 
 
-int testKShortestPath(int argc, char *argv[])
+int testKShortestPath(int, char**)
 {
     hipop::OrientedGraph G;
 

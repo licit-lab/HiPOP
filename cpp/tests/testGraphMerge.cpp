@@ -10,7 +10,7 @@
 
 
 
-int testGraphMerge(int argc, char *argv[])
+int testGraphMerge(int, char**)
 {
     hipop::OrientedGraph* G1 = new hipop::OrientedGraph();
     G1->AddNode("a", 0, 0);

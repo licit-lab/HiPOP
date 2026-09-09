@@ -6,7 +6,7 @@
 #include <memory>
 
 
-int testManhattan(int argc, char *argv[])
+int testManhattan(int, char**)
 {
     std::unique_ptr<hipop::OrientedGraph> G(hipop::makeManhattan(100, 10));
     assertTrue(static_cast<bool>(G), "Failed to create Manhattan graph");
