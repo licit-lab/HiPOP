@@ -17,14 +17,14 @@ namespace hipop
 {
     /**
      * @brief Destroy the Oriented Graph:: Oriented Graph object
-     * 
+     *
      */
     OrientedGraph::~OrientedGraph() {
         for (auto iter : mlinks) {
             delete iter.second;
             iter.second = NULL;
         }
-        
+
         for (auto iter : mnodes) {
             delete iter.second;
             iter.second = NULL;
@@ -36,7 +36,7 @@ namespace hipop
 
     /**
      * @brief Create and Add a new Node to the OrientedGraph
-     * 
+     *
      * @param _id The id of the Node
      * @param x The x coordinate of the Node
      * @param y The y coordinate of the Node
@@ -51,8 +51,8 @@ namespace hipop
 
     /**
      * @brief Add an exisiting Node to the OrientedGraph
-     * 
-     * @param n 
+     *
+     * @param n
      */
     void OrientedGraph::AddNode(Node* n) {
         mnodes[n->mid] = n;
@@ -61,7 +61,7 @@ namespace hipop
 
     /**
      * @brief Create and add a new Link to the OrientedGraph
-     * 
+     *
      * @param _id The id of the Link
      * @param _up The id of the upstream Node of the Link
      * @param _down The id of the downstream Node of the Link
@@ -79,7 +79,7 @@ namespace hipop
 
     /**
      * @brief Add an existing Link to the OrientedGraph
-     * 
+     *
      * @param l The Link to add
      */
     void OrientedGraph::AddLink(Link *l) {
@@ -91,7 +91,7 @@ namespace hipop
 
     /**
      * @brief Delete a link from the OrientedGraph
-     * 
+     *
      * @param _id The Link id to delete
      */
     void OrientedGraph::DeleteLink(std::string _id) {
@@ -138,7 +138,7 @@ namespace hipop
 
     /**
      * @brief Update a Link costs
-     * 
+     *
      * @param lid The id of the Link to update
      * @param _costs The new costs
      */
@@ -148,7 +148,7 @@ namespace hipop
 
     /**
      * @brief Update a list of link costs
-     * 
+     *
      * @param maplinkcosts The map of the links/costs to update
      */
     void OrientedGraph::UpdateCosts(std::unordered_map<std::string, mapcosts> maplinkcosts)
@@ -161,7 +161,7 @@ namespace hipop
 
     /**
      * @brief Print the Nodes informations
-     * 
+     *
      */
     void OrientedGraph::ShowNodes() {
         for(const auto &elem: mnodes) {
@@ -171,7 +171,7 @@ namespace hipop
 
     /**
      * @brief Print the Link informations
-     * 
+     *
      */
     void OrientedGraph::ShowLinks() {
         for(const auto &elem: mlinks) {
@@ -193,7 +193,7 @@ namespace hipop
 
     /**
      * @brief Make a deep copy of an OrientedGraph
-     * 
+     *
      * @param G The graph to copy
      * @return OrientedGraph* The copy
      */
@@ -227,7 +227,7 @@ namespace hipop
 
     /**
      * @brief Merge multiple OrientedGraph together into one
-     * 
+     *
      * @param allGraphs Vector of OrientedGraph to merge
      * @return OrientedGraph* The result of the merge
      */
@@ -256,7 +256,7 @@ namespace hipop
                 }
             }
 
-                newGraph->AddLink(keyVal.first, 
+                newGraph->AddLink(keyVal.first,
                         keyVal.second->mupstream,
                         keyVal.second->mdownstream,
                         keyVal.second->mlength,
@@ -271,8 +271,8 @@ namespace hipop
 
     /**
      * @brief Return links for which the considered cost has not been set
-     * 
-     * @param cost The cost to consider 
+     *
+     * @param cost The cost to consider
      * @param mapLabelCost The type of cost map to choose on each label
      * @return std::vector<std::string> The list of links with no cost
      */
@@ -288,5 +288,3 @@ namespace hipop
         return links;
     }
 } // namespace hipop
-
-

@@ -24,11 +24,11 @@ namespace hipop
         int threadNumber);
 
     pathCost dijkstra(
-        const OrientedGraph &G, 
-        const std::string &origin, 
-        const std::string &destination, 
-        const std::string &cost, 
-        const std::unordered_map<std::string, std::string> &mapLabelCost, 
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &destination,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
         setstring accessibleLabels = {});
     ShortestPathsTree dijkstraSingleSource(
         const OrientedGraph &G,
@@ -42,28 +42,28 @@ namespace hipop
         const std::unordered_map<std::string, std::string> &mapLabelCost,
         setstring accessibleLabels);
     pathCost aStar(
-        const OrientedGraph &G, 
-        const std::string &origin, 
-        const std::string &destination, 
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &destination,
         const std::string &cost,
-        const std::unordered_map<std::string, std::string> &mapLabelCost, 
-        const setstring &accessibleLabels, 
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
+        const setstring &accessibleLabels,
         std::function<double(const Node *, const Node *)> heuristic);
     pathCost aStarEuclidianDist(
-        const OrientedGraph &G, 
-        const std::string &origin, 
-        const std::string &destination, 
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &destination,
         const std::string &cost,
-        const std::unordered_map<std::string, std::string> &mapLabelCost, 
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
         const setstring &accessibleLabels);
 
     std::vector<pathCost> parallelDijkstra(
-        const OrientedGraph &G, 
-        std::vector<std::string> origins, 
-        std::vector<std::string> destinations, 
-        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts, 
-        std::string cost, 
-        int threadNumber, 
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
+        std::vector<std::string> destinations,
+        std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
+        std::string cost,
+        int threadNumber,
         std::vector<setstring> vecAvailableLabels = {});
 
     std::vector<ShortestPathsTree> parallelDijkstraSingleSource(
@@ -84,18 +84,18 @@ namespace hipop
         std::vector<setstring> vecAvailableLabels = {});
 
     std::vector<pathCost> YenKShortestPath(
-        OrientedGraph &G, 
-        std::string origin, 
-        std::string destination, 
-        std::string cost, 
+        OrientedGraph &G,
+        std::string origin,
+        std::string destination,
+        std::string cost,
         setstring accessibleLabels,
         const std::unordered_map<std::string, std::string> &mapLabelCost,
         int kPath);
     std::vector<pathCost> KShortestPath(
-        OrientedGraph &G, 
-        const std::string &origin, 
-        const std::string &destination, 
-        const std::string &cost, 
+        OrientedGraph &G,
+        const std::string &origin,
+        const std::string &destination,
+        const std::string &cost,
         setstring accessibleLabels,
         const std::unordered_map<std::string, std::string> &mapLabelCost,
         double maxDiffCost,
@@ -106,17 +106,17 @@ namespace hipop
         bool intermodal);
 
     std::vector<std::vector<pathCost>> parallelKShortestPath(
-        OrientedGraph &G, 
-        const std::vector<std::string> &origins, 
-        const std::vector<std::string> &destinations, 
+        OrientedGraph &G,
+        const std::vector<std::string> &origins,
+        const std::vector<std::string> &destinations,
         const std::string &cost,
         const std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
-        const std::vector<setstring> accessibleLabels, 
+        const std::vector<setstring> accessibleLabels,
         double maxDiffCost,
         double maxDistInCommon,
         double costMultiplier,
         int maxRetry,
-        const std::vector<int> &kPaths, 
+        const std::vector<int> &kPaths,
         int threadNumber);
 
     std::vector<std::vector<pathCost>> parallelKIntermodalShortestPath(

@@ -5,7 +5,5 @@
 
 namespace hipop
 {
-    OrientedGraph* makeManhattan(int n, double linkLength);    
+    OrientedGraph* makeManhattan(int n, double linkLength);
 } // namespace hipop
-
-

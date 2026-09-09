@@ -9,11 +9,11 @@ namespace hipop_wrappers {
 
 void shortest_path(py::module_ &m) {
     m.def(
-        "dijkstra", 
-        &hipop::dijkstra, 
-        py::arg("graph"), 
-        py::arg("origin"), 
-        py::arg("destination"), 
+        "dijkstra",
+        &hipop::dijkstra,
+        py::arg("graph"),
+        py::arg("origin"),
+        py::arg("destination"),
         py::arg("cost"),
         py::arg("map_label_cost"),
         py::arg("available_labels") = setstring());
@@ -34,14 +34,14 @@ void shortest_path(py::module_ &m) {
       py::arg("available_labels") = setstring()
     );
     m.def(
-        "parallel_dijkstra", 
-        &hipop::parallelDijkstra, 
-        py::arg("graph"), 
-        py::arg("origins"), 
+        "parallel_dijkstra",
+        &hipop::parallelDijkstra,
+        py::arg("graph"),
+        py::arg("origins"),
         py::arg("destinations"),
-        py::arg("map_label_costs"), 
-        py::arg("cost"), 
-        py::arg("thread_number"), 
+        py::arg("map_label_costs"),
+        py::arg("cost"),
+        py::arg("thread_number"),
         py::arg("available_labels") = std::vector<setstring>());
     m.def(
         "parallel_dijkstra_single_source",
@@ -59,7 +59,7 @@ void shortest_path(py::module_ &m) {
         py::arg("origins"),
         py::arg("destinations"),
         py::arg("map_label_costs"),
-        py::arg("costs"), 
+        py::arg("costs"),
         py::arg("thread_number"),
         py::arg("available_labels") = std::vector<setstring>());
     m.def("k_shortest_path", &hipop::KShortestPath);

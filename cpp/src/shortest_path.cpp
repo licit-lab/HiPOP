@@ -47,9 +47,9 @@ namespace hipop
 {
     /**
      * @brief Compute the shortest path between origin and destination using the Dijkstra algorithm
-     * 
+     *
      * @param G The OrientedGrah used for the shortest path
-     * @param origin The origin 
+     * @param origin The origin
      * @param destination The destination
      * @param cost The costs to consider in the shortest path algorithm
      * @param mapLabelCost The type of cost map to choose on each label (mulitple set of costs can be defined on a Link)
@@ -57,11 +57,11 @@ namespace hipop
      * @return pathCost The list of Nodes defining the shortest path and the associated cost
      */
     pathCost dijkstra(
-        const OrientedGraph &G, 
-        const std::string &origin, 
-        const std::string &destination, 
-        const std::string &cost, 
-        const std::unordered_map<std::string, std::string> &mapLabelCost, 
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &destination,
+        const std::string &cost,
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
         setstring accessibleLabels)
     {
         pathCost path;
@@ -128,7 +128,7 @@ namespace hipop
                                 pq.push(QueueItem(new_dist, neighbor));
                                 prev[neighbor] = u;
                             }
-                        }   
+                        }
                     }
                 }
             }
@@ -136,8 +136,8 @@ namespace hipop
             {
                 std::cerr <<  "The node " << u << " does not belong to the graph \n";
             }
-            
-            
+
+
         }
         return path;
     }
@@ -366,7 +366,7 @@ namespace hipop
 
     /**
      * @brief Batch computation of shortest with openmp using the Dijkstra algorithm
-     * 
+     *
      * @param G The OrientedGrah used for the shortest paths
      * @param origins The vector of origins
      * @param destinations The vector of destinations
@@ -377,12 +377,12 @@ namespace hipop
      * @return std::vector<pathCost> The vector of computed shortest path
      */
     std::vector<pathCost> parallelDijkstra(
-        const OrientedGraph &G, 
-        std::vector<std::string> origins, 
+        const OrientedGraph &G,
+        std::vector<std::string> origins,
         std::vector<std::string> destinations,
         std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
-        std::string cost, 
-        int threadNumber, 
+        std::string cost,
+        int threadNumber,
         std::vector<setstring> vecAvailableLabels)
     {
         omp_set_num_threads(threadNumber);
@@ -518,7 +518,7 @@ namespace hipop
 
     /**
      * @brief Increase the cost in a OrientedGraph for a path
-     * 
+     *
      * @param G The OrientedGraph on which the increase occurs
      * @param path The path where the costs should be increased
      * @param initial_costs The intial cost of the links to save
@@ -629,7 +629,7 @@ namespace hipop
 
     /**
      * @brief Compute the length of a path
-     * 
+     *
      * @param G The OrientedGraph on which the path is computed
      * @param path The path
      * @return double The length of the path
@@ -741,10 +741,10 @@ namespace hipop
 
     /**
      * @brief Compute the total cost of a path
-     * 
+     *
      * @param G The OrientedGraph on which the path is computed
      * @param path The path
-     * @param cost The cost to consider 
+     * @param cost The cost to consider
      * @param mapLabelCost The type of cost map to choose on each label
      * @return double The total cost of the path
      */
@@ -805,7 +805,7 @@ namespace hipop
 
     /**
      * @brief Print a path
-     * 
+     *
      * @param path The path to print
      */
     void showPath(pathCost path)
@@ -977,7 +977,7 @@ namespace hipop
 
     /**
      * @brief Compute K shortest path using the Yen algorithm
-     * 
+     *
      * @param G The OrientedGraph on which we compute the paths
      * @param origin The origin
      * @param destination The destination
@@ -988,12 +988,12 @@ namespace hipop
      * @return std::vector<pathCost> The vector of computed paths
      */
     std::vector<pathCost> YenKShortestPath(
-        OrientedGraph &G, 
-        std::string origin, 
-        std::string destination, 
-        std::string cost, 
+        OrientedGraph &G,
+        std::string origin,
+        std::string destination,
+        std::string cost,
         setstring accessibleLabels,
-        const std::unordered_map<std::string, std::string> &mapLabelCost, 
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
         int kPath)
     {
         std::vector<pathCost> A;
@@ -1076,7 +1076,7 @@ namespace hipop
 
     /**
      * @brief Batch computation of K shortest paths using openmp, each thread has its own deep copy of the OrientedGraph to ensure that the increase of the cost do not collapse with the other threads
-     * 
+     *
      * @param G The OrientedGraph on which we compute the paths
      * @param origins The origins
      * @param destinations The destinations
@@ -1095,9 +1095,9 @@ namespace hipop
      * @return std::vector<std::vector<pathCost>>
      */
     std::vector<std::vector<pathCost>> parallelKShortestPath(
-        OrientedGraph &G, 
-        const std::vector<std::string> &origins, 
-        const std::vector<std::string> &destinations, 
+        OrientedGraph &G,
+        const std::vector<std::string> &origins,
+        const std::vector<std::string> &destinations,
         const std::string &cost,
         const std::vector<std::unordered_map<std::string, std::string> > vecMapLabelCosts,
         const std::vector<setstring> accessibleLabels,
@@ -1171,7 +1171,7 @@ namespace hipop
 
     /**
      * @brief Compute the shortest between origin and destination using the A* algorithm
-     * 
+     *
      * @param G The OrientedGraph on which we compute the path
      * @param origin The origin
      * @param destination The destination
@@ -1182,10 +1182,10 @@ namespace hipop
      * @return pathCost The computed path
      */
     pathCost aStar(
-        const OrientedGraph &G, 
-        const std::string &origin, 
-        const std::string &destination, 
-        const std::string &cost, 
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &destination,
+        const std::string &cost,
         const std::unordered_map<std::string, std::string> &mapLabelCost,
         const setstring &accessibleLabels,
         std::function<double(const Node *, const Node *)> heuristic)
@@ -1257,7 +1257,7 @@ namespace hipop
 
     /**
      * @brief A simple heuristic for the A* based on the euclidian distance between two nodes
-     * 
+     *
      * @param current The current Node
      * @param dest The destination Node
      * @return double The distance between current and dest
@@ -1269,21 +1269,21 @@ namespace hipop
 
     /**
      * @brief A* algorithm with an euclidian distance as heuristic
-     * 
+     *
      * @param G The OrientedGraph on which we compute the path
      * @param origin The origin
      * @param destination The destination
-     * @param cost The cost to consider in the shortest path algoritm 
+     * @param cost The cost to consider in the shortest path algoritm
      * @param mapLabelCost The type of cost map to choose on each label
      * @param accessibleLabels The set of accessible label
      * @return pathCost The computed path
      */
     pathCost aStarEuclidianDist(
-        const OrientedGraph &G, 
-        const std::string &origin, 
-        const std::string &destination, 
+        const OrientedGraph &G,
+        const std::string &origin,
+        const std::string &destination,
         const std::string &cost,
-        const std::unordered_map<std::string, std::string> &mapLabelCost, 
+        const std::unordered_map<std::string, std::string> &mapLabelCost,
         const setstring &accessibleLabels)
     {
         return aStar(G, origin, destination, cost, mapLabelCost, accessibleLabels, euclidianDist);

@@ -44,11 +44,15 @@ build = [ # Dependencies needed for build tasks. Must be kept identical to "buil
     "pybind11 >= 3.1",
     "scikit-build-core >= 1.0",
 ]
+lint = [ # Dependencies needed for linting / static analysis.
+    "pre-commit >= 4.6",
+]
 test = [ # Dependencies needed for test tasks. Must be kept identical to tool.cibuildwheel."test-requires"
     "pytest >= 9.1",
 ]
 dev = [ # All dependencies needed for development tasks.
     { include-group = "build" },
+    { include-group = "lint" },
     { include-group = "test" },
 ]
 distrib = [ # Dependencies needed to build distribution files (wheels & source distributions).

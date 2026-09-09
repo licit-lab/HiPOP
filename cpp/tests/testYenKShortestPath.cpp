@@ -29,7 +29,7 @@ int testYenKShortestPath(int argc, char *argv[])
 
     auto paths = hipop::YenKShortestPath(G, "C", "H", "time", {}, {{"CAR", "PersonalVehicle"}}, 3);
     assertTrue(paths.size()==3, "Did not found 3 paths");
-    
+
 
     assertTrue(paths[0].second==5, "First path cost not equal 5");
     assertTrue(paths[0].first==std::vector<std::string>{"C", "E", "F", "H"}, "First path nodes not equal C, E, F, H");

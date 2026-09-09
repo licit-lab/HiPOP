@@ -4,7 +4,7 @@
 
 
 int testCopyGraph(int argc, char *argv[])
-{   
+{
     hipop::OrientedGraph G;
 
     G.AddNode("0", 0, 0);

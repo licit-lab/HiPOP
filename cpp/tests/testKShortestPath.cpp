@@ -27,7 +27,7 @@ int testKShortestPath(int argc, char *argv[])
     std::cout << paths.size() << std::endl;
     std::cout << paths[0].first[0] << paths[0].first[1] << std::endl;
     assertTrue(paths.size()==3, "Did not found 3 paths");
-    
+
 
     assertTrue(paths[0].second==12, "First path cost not equal 12");
     assertTrue(paths[0].first==std::vector<std::string>{"0", "3"}, "First path nodes not equal 0, 3");
