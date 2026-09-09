@@ -29,8 +29,8 @@ int testGraphMerge(int argc, char *argv[])
     G2->AddNode("y", 42, 0);
 
     G2->AddLink("f_y", "f", "y", 22, {{"PersonalVehicle", {{"time", 22}}}}, "CAR");
-    
-    
+
+
     hipop::OrientedGraph* G3 = new hipop::OrientedGraph();
 
     G3->AddNode("h", 39, 3);

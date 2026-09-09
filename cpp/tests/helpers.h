@@ -10,6 +10,3 @@ inline void assertTrue(bool test, std::string message) {
         throw std::runtime_error(message);
     }
 }
-
-
-

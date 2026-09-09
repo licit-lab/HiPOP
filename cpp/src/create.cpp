@@ -7,8 +7,8 @@
 namespace hipop
 {
     /**
-     * @brief Construct a simple costs map from a link length 
-     * 
+     * @brief Construct a simple costs map from a link length
+     *
      * @param linkLength The length of a Link
      * @return mapcosts The simple constructed costs with the link length
      */
@@ -21,7 +21,7 @@ namespace hipop
 
     /**
      * @brief Construct a squared Manhattan graph
-     * 
+     *
      * @param n Number of nodes on each side
      * @param linkLength The length of the links
      * @return OrientedGraph*
@@ -117,6 +117,5 @@ namespace hipop
 
         return G;
     }
-    
-} // namespace hipop
 
+} // namespace hipop

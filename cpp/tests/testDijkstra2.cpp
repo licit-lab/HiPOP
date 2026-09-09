@@ -5,7 +5,7 @@
 
 
 int testDijkstra2(int argc, char *argv[])
-{   
+{
     hipop::OrientedGraph G;
 
     G.AddNode("0", 0, 0);
@@ -25,4 +25,3 @@ int testDijkstra2(int argc, char *argv[])
 
     return 0;
 }
-

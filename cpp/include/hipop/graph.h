@@ -101,7 +101,7 @@ namespace hipop
 
                 mexclude_movements[keyVal.first] = copy;
             }
-        } 
+        }
 
         std::vector<Link*> getExits(std::string predecessor = "_default") {
             std::vector<Link*> res;
@@ -169,7 +169,5 @@ namespace hipop
     OrientedGraph* copyGraph(const OrientedGraph &G);
 
     OrientedGraph* mergeOrientedGraph(std::vector<const OrientedGraph*> allGraphs);
-    
+
 } // namespace hipop
-
-

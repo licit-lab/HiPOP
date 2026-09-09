@@ -1,6 +1,6 @@
 from importlib.resources import path
 from hipop.graph import OrientedGraph, link_to_dict, graph_to_dict
-from hipop.shortest_path import parallel_k_shortest_path, compute_path_length 
+from hipop.shortest_path import parallel_k_shortest_path, compute_path_length
 from pprint import pprint
 
 G = OrientedGraph()
@@ -49,5 +49,3 @@ if len(links) == 0:
     pprint(paths)
 
     #print('Lengths: ',compute_path_length(G,paths[0][0][0]),compute_path_length(G,paths[0][1][0]))
-
-                                                     
