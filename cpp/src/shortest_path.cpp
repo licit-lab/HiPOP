@@ -73,7 +73,7 @@ namespace hipop
         prev.reserve(G.mnodes.size());
         dist.reserve(G.mnodes.size());
         double inf = std::numeric_limits<double>::infinity();
-        for (const auto keyVal : G.mnodes)
+        for (const auto &keyVal : G.mnodes)
         {
             dist[keyVal.first] = inf;
         }
@@ -167,7 +167,7 @@ namespace hipop
         prev.reserve(G.mnodes.size());
         dist.reserve(G.mnodes.size());
         double inf = std::numeric_limits<double>::infinity();
-        for (const auto keyVal : G.mnodes)
+        for (const auto &keyVal : G.mnodes)
         {
             dist[keyVal.first] = inf;
             if (keyVal.first != origin)
@@ -1199,7 +1199,7 @@ namespace hipop
         prev.reserve(G.mnodes.size());
         dist.reserve(G.mnodes.size());
         double inf = std::numeric_limits<double>::infinity();
-        for (const auto keyVal : G.mnodes)
+        for (const auto &keyVal : G.mnodes)
         {
             dist[keyVal.first] = inf;
         }
