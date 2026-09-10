@@ -24,6 +24,12 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # Reference: https://learn.microsoft.com/en-us/cpp/build/reference/compiler-option-warning-level
     add_compile_options(
         /W4  # Recommended default setting
+
+        # FIXME Significant legacy code refactoring would be necessary to address these warnings properly
+        # (in particular, it would require to carefully review the integral types used to encode
+        # the inputs and outputs of graph algorithm functions).
+        /wd4244  # Type conversion with possible loss of precision
+        /wd4267  # Conversion from 'size_t' to smaller integral type
     )
 
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|.*Clang")
