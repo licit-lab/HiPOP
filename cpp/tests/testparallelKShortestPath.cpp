@@ -5,7 +5,7 @@
 
 
 
-int testparallelKShortestPath(int argc, char *argv[])
+int testparallelKShortestPath(int, char**)
 {
     hipop::OrientedGraph G;
 

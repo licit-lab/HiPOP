@@ -14,6 +14,7 @@
 #include <functional>
 #include <iostream>
 #include <cmath>
+#include <cstdint>
 
 typedef std::pair<double, std::string> QueueItem;
 typedef std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<QueueItem>> PriorityQueue;
@@ -73,7 +74,7 @@ namespace hipop
         prev.reserve(G.mnodes.size());
         dist.reserve(G.mnodes.size());
         double inf = std::numeric_limits<double>::infinity();
-        for (const auto keyVal : G.mnodes)
+        for (const auto &keyVal : G.mnodes)
         {
             dist[keyVal.first] = inf;
         }
@@ -132,7 +133,7 @@ namespace hipop
                     }
                 }
             }
-            catch(const std::out_of_range& e)
+            catch(const std::out_of_range&)
             {
                 std::cerr <<  "The node " << u << " does not belong to the graph \n";
             }
@@ -167,7 +168,7 @@ namespace hipop
         prev.reserve(G.mnodes.size());
         dist.reserve(G.mnodes.size());
         double inf = std::numeric_limits<double>::infinity();
-        for (const auto keyVal : G.mnodes)
+        for (const auto &keyVal : G.mnodes)
         {
             dist[keyVal.first] = inf;
             if (keyVal.first != origin)
@@ -208,7 +209,7 @@ namespace hipop
                     }
                 }
             }
-            catch(const std::out_of_range& e)
+            catch(const std::out_of_range&)
             {
                 std::cerr <<  "The node " << u << " does not belong to the graph \n";
             }
@@ -238,12 +239,14 @@ namespace hipop
         // Map nodes ids with integers
         std::unordered_map<std::string, int> nodevMap;
         std::unordered_map<int, std::string> vnodeMap;
-        int v = 0;
-        for (const auto& pair : G.mnodes)
         {
-            nodevMap.insert({pair.first, v});
-            vnodeMap.insert({v, pair.first});
-            ++v;
+            int v = 0;
+            for (const auto& pair : G.mnodes)
+            {
+                nodevMap.insert({pair.first, v});
+                vnodeMap.insert({v, pair.first});
+                ++v;
+            }
         }
 
         // Initialize dist and prev tables
@@ -323,9 +326,9 @@ namespace hipop
             });
 
             std::string ODLabelCosts = o + d + cost;
-            for (int j = 0; j < vecLabelCosts.size(); ++j)
+            for (const auto &labelCosts : vecLabelCosts)
             {
-                ODLabelCosts = ODLabelCosts + "-" + vecLabelCosts[j].first + ":" + vecLabelCosts[j].second;
+                ODLabelCosts = ODLabelCosts + "-" + labelCosts.first + ":" + labelCosts.second;
             }
             ODsLabelCosts.push_back(ODLabelCosts);
         }
@@ -334,7 +337,7 @@ namespace hipop
         std::vector<int> uniqueIndices;
         std::unordered_map<int, int> nbPaths;
         std::unordered_map<int, int> duplicateIndices;
-        for (int i = 0; i < ODsLabelCosts.size(); i++)
+        for (std::size_t i = 0; i < ODsLabelCosts.size(); i++)
         {
             if (s.insert(ODsLabelCosts[i]).second)
             {
@@ -397,8 +400,11 @@ namespace hipop
 
         std::vector<pathCost> res(nbPath);
 
+        // FIXME MSVC is still stuck to OpenMP 2.0, which requires **signed** loop variables for parallel for.
+        std::int64_t nbUniqueIndices = uniqueIndices.size();
+
         #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
-        for (int i = 0; i < uniqueIndices.size(); i++)
+        for (std::int64_t i = 0; i < nbUniqueIndices; i++)
         {
             int uniqueIdx = uniqueIndices[i];
             if (vecAvailableLabels.empty())
@@ -492,8 +498,11 @@ namespace hipop
         int nbPath = origins.size();
         std::vector<pathCost> res(nbPath);
 
+        // FIXME MSVC is still stuck to OpenMP 2.0, which requires **signed** loop variables for parallel for.
+        std::int64_t nbUniqueIndices = uniqueIndices.size();
+
         #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
-        for (int i = 0; i < uniqueIndices.size(); i++)
+        for (std::int64_t i = 0; i < nbUniqueIndices; i++)
         {
             int uniqueIdx = uniqueIndices[i];
             if (vecAvailableLabels.empty())
@@ -658,10 +667,10 @@ namespace hipop
     std::vector<double> computeRelativeDistancesInCommon(OrientedGraph &G, const std::vector<std::string> &path, std::vector<pathCost> &paths)
     {
         //assert path.size() > 0;
-        int nbPaths = paths.size();
+        std::size_t nbPaths = paths.size();
         std::vector<double> relDists(nbPaths);
 
-        for (int i = 0; i < nbPaths; i++)
+        for (std::size_t i = 0; i < nbPaths; i++)
         {
             std::vector<std::string> compared_p = paths[i].first;
             //assert compared_p.size() > 0;
@@ -675,7 +684,7 @@ namespace hipop
                 compared_p_links[j] = link->mid;
             }
             double commonDist = 0;
-            for (int j = 0; j < path.size() - 1; j++)
+            for (std::size_t j = 0; j + 1 < path.size(); j++)
             {
                 Link *link = G.mnodes[path[j]]->madj[path[j + 1]];
                 if (std::find(compared_p_links.begin(), compared_p_links.end(), link->mid) != compared_p_links.end())
@@ -1002,7 +1011,7 @@ namespace hipop
 
         double inf = std::numeric_limits<double>::infinity();
 
-        for (size_t k = 1; k < kPath; k++)
+        for (int k = 1; k < kPath; k++)
         {
             for (size_t i = 0; i < A[k - 1].first.size() - 2; i++)
             {
@@ -1012,7 +1021,7 @@ namespace hipop
                 rootPath.second = 0;
                 rootPath.first.insert(rootPath.first.begin(), A[k - 1].first.begin(), A[k - 1].first.begin() + i + 1);
 
-                for (int j = 0; j < rootPath.first.size() - 1; j++)
+                for (std::size_t j = 0; j + 1 < rootPath.first.size(); j++)
                 {
                     Link *l = G.mnodes[rootPath.first[j]]->madj[rootPath.first[j + 1]];
                     rootPath.second += l->mcosts[mapLabelCost.at(l->mlabel)][cost];
@@ -1110,7 +1119,7 @@ namespace hipop
     {
         omp_set_num_threads(threadNumber);
 
-        int nbODs = origins.size();
+        std::size_t nbODs = origins.size();
         std::vector<std::vector<pathCost>> res(nbODs);
         OrientedGraph *privateG;
 
@@ -1120,12 +1129,15 @@ namespace hipop
         std::vector<std::string> costs(nbODs, cost);
         tie(uniqueIndices, duplicateIndices, nbPaths) = find_duplicates(origins, destinations, vecMapLabelCosts, costs, kPaths);
 
+        // FIXME MSVC is still stuck to OpenMP 2.0, which requires **signed** loop variables for parallel for.
+        std::int64_t nbUniqueIndices = uniqueIndices.size();
+
         #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins, destinations, kPaths) private(privateG)
         {
             privateG = copyGraph(G);
 
             #pragma omp for
-            for (int i = 0; i < uniqueIndices.size(); ++i)
+            for (std::int64_t i = 0; i < nbUniqueIndices; ++i)
             {
                 int uniqueIdx = uniqueIndices[i];
                 if (accessibleLabels.empty())
@@ -1153,9 +1165,9 @@ namespace hipop
         }
 
         // Keep only the proper number of paths for each OD
-        for (int i = 0; i < nbODs; ++i)
+        for (std::size_t i = 0; i < nbODs; ++i)
         {
-            int k = kPaths[i];
+            std::size_t k = kPaths[i];
             std::vector<pathCost> res_paths = res[i];
             if (res_paths.size() > k)
             {
@@ -1199,7 +1211,7 @@ namespace hipop
         prev.reserve(G.mnodes.size());
         dist.reserve(G.mnodes.size());
         double inf = std::numeric_limits<double>::infinity();
-        for (const auto keyVal : G.mnodes)
+        for (const auto &keyVal : G.mnodes)
         {
             dist[keyVal.first] = inf;
         }
@@ -1442,14 +1454,14 @@ namespace hipop
 
         // Set destinations as nodes of the trpl graph
         std::vector<std::string> destinationsTwin;
-        for (int i=0; i < destinations.size(); i++) {
-          destinationsTwin.push_back(destinations[i] + "_TRPL");
+        for (const auto &destination : destinations) {
+          destinationsTwin.push_back(destination + "_TRPL");
         }
 
         // Launch dijkstra algo for each OD in parallel
         omp_set_num_threads(threadNumber);
 
-        int nbOD = origins.size();
+        std::size_t nbOD = origins.size();
         std::vector<std::vector<pathCost>> res(nbOD);
 
         std::vector<int> uniqueIndices;
@@ -1461,13 +1473,16 @@ namespace hipop
         OrientedGraph *privateDoubledG1;
         OrientedGraph *privateDoubledG2;
 
+        // FIXME MSVC is still stuck to OpenMP 2.0, which requires **signed** loop variables for parallel for.
+        std::int64_t nbUniqueIndices = uniqueIndices.size();
+
         #pragma omp parallel shared(res, vecAvailableLabels, vecMapLabelCosts, origins, destinationsTwin, kPaths, doubledG1, doubledG2) private(privateDoubledG1, privateDoubledG2)
         {
           privateDoubledG1 = copyGraph(*doubledG1);
           privateDoubledG2 = copyGraph(*doubledG2);
 
           #pragma omp for
-          for (int i = 0; i < uniqueIndices.size(); i++)
+          for (std::int64_t i = 0; i < nbUniqueIndices; i++)
           {
             int idx = uniqueIndices[i];
             std::vector<pathCost> resPath1;
@@ -1488,11 +1503,11 @@ namespace hipop
             // Concat resPath1 and resPath2
             resPath1.insert(resPath1.end(), resPath2.begin(), resPath2.end());
             // Decode paths
-            for (int j = 0; j < resPath1.size(); j++){
-              if (resPath1[j].first.size() > 0) {
-                for (int k = 0; k < resPath1[j].first.size(); k++) {
-                  if (resPath1[j].first[k].size() > 5 && (resPath1[j].first[k].compare(resPath1[j].first[k].size() - 5, 5, "_TWIN") == 0 || resPath1[j].first[k].compare(resPath1[j].first[k].size() - 5, 5, "_TRPL") == 0)) {
-                    resPath1[j].first[k] = resPath1[j].first[k].substr(0, resPath1[j].first[k].size() - 5);
+            for (auto &path1 : resPath1) {
+              if (path1.first.size() > 0) {
+                for (std::string &pathNode : path1.first) {
+                  if (pathNode.size() > 5 && (pathNode.compare(pathNode.size() - 5, 5, "_TWIN") == 0 || pathNode.compare(pathNode.size() - 5, 5, "_TRPL") == 0)) {
+                    pathNode = pathNode.substr(0, pathNode.size() - 5);
                   }
                 }
               }
@@ -1504,9 +1519,10 @@ namespace hipop
             // Keep the k best paths found
             std::sort(resPath1.begin(), resPath1.end(), [](pathCost a, pathCost b)
               { return a.second < b.second; });
-            if (resPath1.size() >= nbPaths[idx])
+            std::size_t currentNbPaths = nbPaths[idx];
+            if (resPath1.size() >= currentNbPaths)
             {
-                std::vector<pathCost> resPath(resPath1.begin(), resPath1.begin() + nbPaths[idx]);
+                std::vector<pathCost> resPath(resPath1.begin(), resPath1.begin() + currentNbPaths);
                 res[idx] = resPath;
             }
             else
@@ -1533,9 +1549,9 @@ namespace hipop
       }
 
       // Keep only the proper number of paths for each OD
-      for (int i = 0; i < nbOD; ++i)
+      for (std::size_t i = 0; i < nbOD; ++i)
       {
-          int k = kPaths[i];
+          std::size_t k = kPaths[i];
           std::vector<pathCost> res_paths = res[i];
           if (res_paths.size() > k)
           {

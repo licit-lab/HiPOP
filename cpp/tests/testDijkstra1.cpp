@@ -4,7 +4,7 @@
 #include <hipop/shortest_path.h>
 
 
-int testDijkstra1(int argc, char *argv[])
+int testDijkstra1(int, char**)
 {
     hipop::OrientedGraph G;
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.24)
 
 file(STRINGS VERSION.txt HIPOP_VERSION)
 project(HiPOP
@@ -12,20 +12,8 @@ option(HIPOP_WITH_PYTHON "Compile Python wrapper" OFF) # Disabled by default, so
 option(HIPOP_WITH_TESTS "Compile HiPOP tests (for core library)" ON)
 option(HIPOP_WITH_EXAMPLES "Compile HiPOP examples (for core library)" ON)
 
-# Default build configuration.
-# Can be overriden with `-DCMAKE_BUILD_TYPE=<Debug|RelWithDebInfo|Release|...>` when calling CMake,
-# or by using an environment variable `export CMAKE_BUILD_TYPE=...`.
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-message(STATUS "CMAKE_BUILD_TYPE set to [${CMAKE_BUILD_TYPE}]")
-
-# Default C++ standard for all the targets in the project.
-# Can be overriden with `-DCMAKE_CXX_STANDARD=...` when calling CMake (but should be at least the default value).
-if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
-endif()
-message(STATUS "CMAKE_CXX_STANDARD set to [${CMAKE_CXX_STANDARD}]")
+# Miscellaneous CMake and compiler settings.
+include(cmake/MainSettings.cmake)
 
 # 3rd-party dependencies.
 find_package(OpenMP REQUIRED)

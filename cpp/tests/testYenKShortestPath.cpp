@@ -5,7 +5,7 @@
 
 
 
-int testYenKShortestPath(int argc, char *argv[])
+int testYenKShortestPath(int, char**)
 {
     hipop::OrientedGraph G;
 

@@ -11,7 +11,7 @@
 
 // Same test scenario as in python/tests/test_Graph.py.
 // WARNING: any modification in this test should be reflected in the python test as well.
-int testGraph(int argc, char *argv[])
+int testGraph(int, char**)
 {
     hipop::OrientedGraph *G = new hipop::OrientedGraph();
     G->AddNode("a", 0, 0);
