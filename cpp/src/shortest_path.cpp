@@ -132,7 +132,7 @@ namespace hipop
                     }
                 }
             }
-            catch(const std::out_of_range& e)
+            catch(const std::out_of_range&)
             {
                 std::cerr <<  "The node " << u << " does not belong to the graph \n";
             }
@@ -208,7 +208,7 @@ namespace hipop
                     }
                 }
             }
-            catch(const std::out_of_range& e)
+            catch(const std::out_of_range&)
             {
                 std::cerr <<  "The node " << u << " does not belong to the graph \n";
             }
