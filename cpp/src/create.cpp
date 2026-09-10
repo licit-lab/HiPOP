@@ -29,18 +29,18 @@ namespace hipop
     OrientedGraph* makeManhattan(int n, double linkLength) {
         OrientedGraph *G = new OrientedGraph();
 
-        for (size_t i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
         {
-            for (size_t j = 0; j < n; j++)
+            for (int j = 0; j < n; j++)
             {
                 G->AddNode(std::to_string(i*n+j), i*linkLength, j*linkLength);
             }
 
         }
 
-        for (size_t i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
         {
-            for (size_t j = 0; j < n; j++)
+            for (int j = 0; j < n; j++)
             {
                 int ind = i*n+j;
 
@@ -72,8 +72,8 @@ namespace hipop
 
         }
 
-        size_t counter = 0;
-        for (size_t i = 0; i < n; i++)
+        int counter = 0;
+        for (int i = 0; i < n; i++)
         {
             std::string upstream = "WEST_"+std::to_string(i);
             std::string downstream = std::to_string(i);
@@ -83,7 +83,7 @@ namespace hipop
         }
 
         counter = 0;
-        for (size_t i = n*(n-1); i < n*n; i++)
+        for (int i = n*(n-1); i < n*n; i++)
         {
             std::string upstream = "EAST_"+std::to_string(counter);
             std::string downstream = std::to_string(i);
@@ -94,7 +94,7 @@ namespace hipop
         }
 
         counter = 0;
-        for (size_t i = n-1; i < n*n; i+=n)
+        for (int i = n-1; i < n*n; i+=n)
         {
             std::string upstream = "NORTH_"+std::to_string(counter);
             std::string downstream = std::to_string(i);
@@ -105,7 +105,7 @@ namespace hipop
         }
 
         counter = 0;
-        for (size_t i = 0; i < n*n; i+=n)
+        for (int i = 0; i < n*n; i+=n)
         {
             std::string upstream = "SOUTH_"+std::to_string(counter);
             std::string downstream = std::to_string(i);
