@@ -14,6 +14,7 @@
 #include <functional>
 #include <iostream>
 #include <cmath>
+#include <cstdint>
 
 typedef std::pair<double, std::string> QueueItem;
 typedef std::priority_queue<QueueItem, std::vector<QueueItem>, std::greater<QueueItem>> PriorityQueue;
@@ -399,8 +400,11 @@ namespace hipop
 
         std::vector<pathCost> res(nbPath);
 
+        // FIXME MSVC is still stuck to OpenMP 2.0, which requires **signed** loop variables for parallel for.
+        std::int64_t nbUniqueIndices = uniqueIndices.size();
+
         #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
-        for (std::size_t i = 0; i < uniqueIndices.size(); i++)
+        for (std::int64_t i = 0; i < nbUniqueIndices; i++)
         {
             int uniqueIdx = uniqueIndices[i];
             if (vecAvailableLabels.empty())
@@ -494,8 +498,11 @@ namespace hipop
         int nbPath = origins.size();
         std::vector<pathCost> res(nbPath);
 
+        // FIXME MSVC is still stuck to OpenMP 2.0, which requires **signed** loop variables for parallel for.
+        std::int64_t nbUniqueIndices = uniqueIndices.size();
+
         #pragma omp parallel for shared(res, vecAvailableLabels, vecMapLabelCosts) schedule(dynamic)
-        for (std::size_t i = 0; i < uniqueIndices.size(); i++)
+        for (std::int64_t i = 0; i < nbUniqueIndices; i++)
         {
             int uniqueIdx = uniqueIndices[i];
             if (vecAvailableLabels.empty())
@@ -1122,12 +1129,15 @@ namespace hipop
         std::vector<std::string> costs(nbODs, cost);
         tie(uniqueIndices, duplicateIndices, nbPaths) = find_duplicates(origins, destinations, vecMapLabelCosts, costs, kPaths);
 
+        // FIXME MSVC is still stuck to OpenMP 2.0, which requires **signed** loop variables for parallel for.
+        std::int64_t nbUniqueIndices = uniqueIndices.size();
+
         #pragma omp parallel shared(res, accessibleLabels, G, vecMapLabelCosts, origins, destinations, kPaths) private(privateG)
         {
             privateG = copyGraph(G);
 
             #pragma omp for
-            for (std::size_t i = 0; i < uniqueIndices.size(); ++i)
+            for (std::int64_t i = 0; i < nbUniqueIndices; ++i)
             {
                 int uniqueIdx = uniqueIndices[i];
                 if (accessibleLabels.empty())
@@ -1463,13 +1473,16 @@ namespace hipop
         OrientedGraph *privateDoubledG1;
         OrientedGraph *privateDoubledG2;
 
+        // FIXME MSVC is still stuck to OpenMP 2.0, which requires **signed** loop variables for parallel for.
+        std::int64_t nbUniqueIndices = uniqueIndices.size();
+
         #pragma omp parallel shared(res, vecAvailableLabels, vecMapLabelCosts, origins, destinationsTwin, kPaths, doubledG1, doubledG2) private(privateDoubledG1, privateDoubledG2)
         {
           privateDoubledG1 = copyGraph(*doubledG1);
           privateDoubledG2 = copyGraph(*doubledG2);
 
           #pragma omp for
-          for (std::size_t i = 0; i < uniqueIndices.size(); i++)
+          for (std::int64_t i = 0; i < nbUniqueIndices; i++)
           {
             int idx = uniqueIndices[i];
             std::vector<pathCost> resPath1;
