@@ -238,12 +238,14 @@ namespace hipop
         // Map nodes ids with integers
         std::unordered_map<std::string, int> nodevMap;
         std::unordered_map<int, std::string> vnodeMap;
-        int v = 0;
-        for (const auto& pair : G.mnodes)
         {
-            nodevMap.insert({pair.first, v});
-            vnodeMap.insert({v, pair.first});
-            ++v;
+            int v = 0;
+            for (const auto& pair : G.mnodes)
+            {
+                nodevMap.insert({pair.first, v});
+                vnodeMap.insert({v, pair.first});
+                ++v;
+            }
         }
 
         // Initialize dist and prev tables

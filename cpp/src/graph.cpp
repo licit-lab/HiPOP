@@ -248,19 +248,11 @@ namespace hipop
             }
 
             for(const auto &keyVal: G->mlinks) {
-                mapcosts costs;
-
-                for(const auto &keyMapCost: keyVal.second->mcosts) {
-                    for(const auto &keyVal: keyMapCost.second) {
-                        costs[keyMapCost.first][keyVal.first] = keyVal.second;
-                }
-            }
-
                 newGraph->AddLink(keyVal.first,
                         keyVal.second->mupstream,
                         keyVal.second->mdownstream,
                         keyVal.second->mlength,
-                        costs,
+                        keyVal.second->mcosts,
                         keyVal.second->mlabel);
 
             }
